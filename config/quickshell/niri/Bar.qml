@@ -277,17 +277,17 @@ PanelWindow {
             }
 
             BarButton {
-                glyph: "󰔛"
-                tip: "Reminders\n\nRight-click to show all"
-                onClickAction: () => Actions.detached("nirarchy-menu reminder")
-                onRightClickAction: () => Actions.detached("nirarchy-reminder show")
-            }
-
-            BarButton {
                 glyph: "󰄀"
                 tip: "Screenshot\n\nRight-click for capture menu"
                 onClickAction: () => Actions.detached("nirarchy-capture-screenshot")
                 onRightClickAction: () => Actions.detached("nirarchy-menu capture")
+            }
+
+            BarButton {
+                glyph: "󰔛"
+                tip: "Reminders\n\nRight-click to show all"
+                onClickAction: () => Actions.detached("nirarchy-menu reminder")
+                onRightClickAction: () => Actions.detached("nirarchy-reminder show")
             }
 
             BarButton {

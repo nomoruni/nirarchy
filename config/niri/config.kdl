@@ -95,6 +95,11 @@ window-rule {
 
 
 window-rule {
+    match app-id=r#"^org\.nirarchy\.(btop|wiremix|impala|bluetui)$"#
+    open-floating true
+}
+
+window-rule {
     match title=r#"(Picture-in-Picture|pipewire)"#
     open-floating true
 }
