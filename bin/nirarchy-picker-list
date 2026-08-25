@@ -1,0 +1,54 @@
+#!/bin/bash
+# nirarchy-picker-list: List entries for the quickshell theme/background picker
+# Output: value \t label \t image  (tab separated)
+# Usage: nirarchy-picker-list themes|backgrounds
+
+mode="$1"
+HOME_DIR="$HOME"
+DATA_THEMES="$HOME_DIR/.local/share/nirarchy/themes"
+USER_THEMES="$HOME_DIR/.config/nirarchy/themes"
+CURRENT_THEME="$(readlink -f "$HOME_DIR/.config/nirarchy/current/theme" 2>/dev/null)"
+
+first_image() {
+  local dir="$1"
+  if [[ -f $dir/preview.png ]]; then
+    echo "$dir/preview.png"
+    return
+  fi
+  if [[ -f $dir/preview.jpg ]]; then
+    echo "$dir/preview.jpg"
+    return
+  fi
+  find -L "$dir/backgrounds" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.jpeg' -o -iname '*.webp' \) 2>/dev/null | sort | head -n1
+}
+
+pretty() {
+  echo "${1//-/ }" | sed -r 's/(^| )([a-z])/\1\U\2/g'
+}
+
+case "$mode" in
+themes)
+  seen=""
+  for base in "$USER_THEMES" "$DATA_THEMES"; do
+    [[ -d $base ]] || continue
+    for dir in "$base"/*/; do
+      [[ -d $dir ]] || continue
+      name=$(basename "$dir")
+      [[ ,$seen, == *",$name,"* ]] && continue
+      seen="$seen,$name"
+      img=$(first_image "$dir")
+      printf '%s\t%s\t%s\n' "$name" "$(pretty "$name")" "$img"
+    done
+  done
+  ;;
+backgrounds)
+  bg_dir="$CURRENT_THEME/backgrounds"
+  [[ -d $bg_dir ]] || exit 0
+  while IFS= read -r img; do
+    fname=$(basename "$img")
+    label=$(echo "$fname" | sed 's/\.[^.]*$//; s/^[0-9]*[-_]?//; s/-/ /g; s/_/ /g')
+    label=$(echo "$label" | sed -r 's/(^| )([a-z])/\1\U\2/g')
+    printf '%s\t%s\t%s\n' "$img" "${label:-$fname}" "$img"
+  done < <(find -L "$bg_dir" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.jpeg' -o -iname '*.webp' \) 2>/dev/null | sort)
+  ;;
+esac

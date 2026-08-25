@@ -1,0 +1,6 @@
+#!/bin/bash
+# nirarchy-close-all-windows: Close every open window
+
+niri msg --json windows 2>/dev/null | jq -r '.[].id' | while read -r id; do
+  niri msg action close-window --id "$id"
+done

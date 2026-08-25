@@ -1,0 +1,8 @@
+#!/bin/bash
+# nirarchy-toggle-bar: Toggle the quickshell top bar (systemd-managed, self-healing)
+
+if [[ $(systemctl --user is-active nirarchy-bar.service) == active ]]; then
+  systemctl --user stop nirarchy-bar.service
+else
+  systemctl --user start nirarchy-bar.service
+fi

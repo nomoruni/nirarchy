@@ -1,0 +1,7 @@
+#!/bin/bash
+# nirarchy-update-available: Print update indicator if system updates are available
+
+count=$(pacman -Qu 2>/dev/null | wc -l)
+if ((count > 0)); then
+  echo ""
+fi

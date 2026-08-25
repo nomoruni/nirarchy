@@ -1,0 +1,4 @@
+#!/bin/bash
+# nirarchy-system-logout: End the Niri session
+
+niri msg action quit

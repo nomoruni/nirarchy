@@ -1,0 +1,17 @@
+#!/bin/bash
+# nirarchy-system-lock: Lock the computer and turn off the display after a delay
+
+if ! pidof hyprlock >/dev/null; then
+  (
+    hyprlock
+    nirarchy-system-wake
+  ) &
+fi
+
+if [[ ${NIRARCHY_LOCK_ONLY:-false} != "true" ]]; then
+  (
+    sleep 3
+    pidof hyprlock >/dev/null || exit 0
+    brightnessctl --class=backlight set 5% >/dev/null 2>&1 || true
+  ) &
+fi

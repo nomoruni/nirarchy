@@ -1,0 +1,19 @@
+#!/bin/bash
+# nirarchy-scratchpad: Toggle a named "scratchpad" workspace
+
+STATE_DIR="$HOME/.cache/nirarchy"
+mkdir -p "$STATE_DIR"
+
+active=$(niri msg --json workspaces 2>/dev/null | jq -r '[.[] | select(.is_active)][0] | (.name // (.num|tostring) // empty)')
+
+if [[ $active == "scratchpad" ]]; then
+  prev=$(cat "$STATE_DIR/scratchpad-prev" 2>/dev/null)
+  if [[ -n $prev ]]; then
+    niri msg action focus-workspace "$prev"
+  else
+    niri msg action focus-workspace 1
+  fi
+else
+  [[ -n $active ]] && echo "$active" > "$STATE_DIR/scratchpad-prev"
+  niri msg action focus-workspace scratchpad
+fi

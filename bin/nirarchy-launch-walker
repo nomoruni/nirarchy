@@ -1,0 +1,12 @@
+#!/bin/bash
+# nirarchy-launch-walker: Launch Walker and ensure its Elephant data provider is running
+
+if ! pgrep -x elephant >/dev/null; then
+  setsid elephant >/dev/null 2>&1 &
+fi
+
+if ! pgrep -f "walker --gapplication-service" >/dev/null && ! pgrep -fx "walker" >/dev/null; then
+  setsid env GSK_RENDERER=cairo walker --gapplication-service >/dev/null 2>&1 &
+fi
+
+exec walker --width 644 --maxheight 300 --minheight 300 "$@"

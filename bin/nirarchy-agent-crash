@@ -1,0 +1,57 @@
+#!/bin/bash
+# nirarchy-agent-crash: Diagnose a crashed process with opencode
+# Usage: nirarchy-agent-crash [pid] [comm] [exe] [signal]
+#   With no arguments, uses the last crash recorded by nirarchy-crash-watch.
+
+set -euo pipefail
+
+STATE="$HOME/.cache/nirarchy/last-crash"
+
+if (($# == 0)); then
+  [[ -f $STATE ]] || {
+    notify-send -u normal "Crash diagnosis" "No crash recorded yet" || true
+    exit 1
+  }
+  # shellcheck disable=SC1090
+  source "$STATE"
+  pid=${pid:-0}
+  comm=${comm:-unknown}
+  exe=${exe:-unknown}
+  signal=${signal:-unknown}
+  when=${when:-unknown}
+else
+  pid=${1:?usage: nirarchy-agent-crash [pid] [comm] [exe] [signal]}
+  [[ $pid =~ ^[0-9]+$ ]] || {
+    echo "Not a PID: $pid" >&2
+    exit 1
+  }
+  comm=${2:-unknown}
+  exe=${3:-unknown}
+  signal=${4:-unknown}
+  when=$(coredumpctl list "$pid" --no-pager --no-legend 2>/dev/null | tail -1 | cut -d' ' -f1-4 || true)
+  when=${when:-unknown}
+fi
+
+PROMPT_FILE=$(mktemp /tmp/nirarchy-crash-prompt.XXXXXX)
+
+cat >"$PROMPT_FILE" <<PROMPT
+A process crashed on this Nirarchy machine and I want to know why.
+
+What systemd-coredump recorded:
+  process:  $comm
+  PID:      $pid
+  binary:   $exe
+  signal:   $signal
+  time:     $when
+
+Use the diagnose-crash skill: it covers how to investigate, what to report, and
+when a crash belongs to an upstream project instead of Nirarchy. If the skill is
+not loaded, read it directly and follow it:
+
+  $HOME/.config/opencode/skills/diagnose-crash/SKILL.md
+PROMPT
+
+setsid foot --app-id=org.nirarchy.opencode --title="opencode — crash diagnosis" \
+  -e bash -c 'opencode "$(cat '"$PROMPT_FILE"')"; rm -f '"$PROMPT_FILE"'' >/dev/null 2>&1 &
+
+disown

@@ -1,0 +1,6 @@
+#!/bin/bash
+# nirarchy-theme-picker: Open the native quickshell theme/background picker
+# Usage: nirarchy-theme-picker [themes|backgrounds]
+
+mode="${1:-themes}"
+exec qs -p "$HOME/.config/quickshell/niri" ipc call picker "$mode"

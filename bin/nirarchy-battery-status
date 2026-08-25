@@ -1,0 +1,16 @@
+#!/bin/bash
+# nirarchy-battery-status: Human readable battery summary
+
+info=$("$HOME/.local/bin/nirarchy-sys" battery)
+[[ $info == none ]] && { echo "No battery found"; exit 0; }
+
+cap="${info%%|*}"
+status="${info##*|}"
+
+case "$status" in
+Charging) icon="󰂄" ;;
+Full) icon="󰁹" ;;
+*) icon="󰁹" ;;
+esac
+
+echo "$icon  Battery at ${cap}% ($status)"

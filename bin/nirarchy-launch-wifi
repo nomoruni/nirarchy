@@ -1,0 +1,5 @@
+#!/bin/bash
+# nirarchy-launch-wifi: WiFi controls (Impala TUI over iwd), same as Omarchy
+
+rfkill unblock wifi 2>/dev/null
+exec nirarchy-launch-or-focus-tui impala

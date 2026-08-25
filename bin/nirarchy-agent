@@ -1,0 +1,6 @@
+#!/bin/bash
+# nirarchy-agent: Open the opencode AI agent in a terminal (the only agent in Nirarchy)
+
+cwd="$(nirarchy-cmd-terminal-cwd)"
+
+setsid foot --app-id=org.nirarchy.opencode --title="opencode" -e bash -c "cd '$cwd' && opencode" >/dev/null 2>&1 &

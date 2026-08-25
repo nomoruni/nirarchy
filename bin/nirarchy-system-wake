@@ -1,0 +1,5 @@
+#!/bin/bash
+# nirarchy-system-wake: Turn the display back on after waking
+
+brightnessctl -q --class=backlight set 40% >/dev/null 2>&1 ||
+  brightnessctl -q set 40% >/dev/null 2>&1 || true

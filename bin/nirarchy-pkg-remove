@@ -1,0 +1,15 @@
+#!/bin/bash
+# nirarchy-pkg-remove: fzf picker to remove installed packages
+
+fzf_args=(
+  --multi
+  --preview 'yay -Qi {1}'
+  --preview-window 'down:65%:wrap'
+)
+
+pkg_names=$(yay -Qqe | fzf "${fzf_args[@]}")
+
+if [[ -n $pkg_names ]]; then
+  echo "$pkg_names" | tr '\n' ' ' | xargs sudo pacman -Rns --noconfirm
+  nirarchy-show-done
+fi

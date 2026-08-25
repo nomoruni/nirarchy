@@ -1,0 +1,53 @@
+#!/bin/bash
+# nirarchy-reminder: Set, show or clear reminders via systemd user timers
+# nirarchy-reminder <minutes> [message] | show | clear
+
+STATE_DIR="$HOME/.cache/nirarchy"
+mkdir -p "$STATE_DIR"
+REGISTRY="$STATE_DIR/reminders"
+
+case "${1:-}" in
+show)
+  if [[ -f $REGISTRY && -s $REGISTRY ]]; then
+    msg="󰔛 Reminders:\n$(cat "$REGISTRY")"
+    notify-send -u low "Reminders" "$(cat "$REGISTRY")"
+    echo -e "$msg"
+  else
+    notify-send -u low "Reminders" "None set"
+  fi
+  ;;
+clear)
+  if [[ -f $REGISTRY ]]; then
+    while read -r unit _; do
+      systemctl --user stop "$unit" 2>/dev/null
+      systemctl --user stop "$unit.timer" 2>/dev/null
+    done <"$REGISTRY"
+    rm -f "$REGISTRY"
+    notify-send -u low "Reminders" "Cleared all"
+  fi
+  ;;
+""|-h|--help)
+  echo "Usage: nirarchy-reminder <minutes> [message] | show | clear"
+  exit 1
+  ;;
+*)
+  minutes=$1
+  shift || true
+  message="${*:-(reminder)}"
+  [[ $minutes =~ ^[0-9]+$ ]] || { echo "Minutes must be a number" >&2; exit 1; }
+
+  ts=$(date +%s)
+  unit="nirarchy-reminder-$ts.service"
+
+  systemd-run --user --on-active="${minutes}min" \
+    --description="Reminder: $message" \
+    --unit="$unit" \
+    notify-send -u normal -A "OK" "Reminder" "$message" >/dev/null
+
+  echo "$unit · in ${minutes}m · $message" >>"$REGISTRY"
+  notify-send -u low "Reminder set" "In ${minutes} minutes: $message"
+
+  systemd-run --user --on-active="${minutes}min" --unit="nirarchy-reminder-cleanup-$ts" \
+    bash -c "sed -i '/^$unit /d' '$REGISTRY'" >/dev/null 2>&1
+  ;;
+esac

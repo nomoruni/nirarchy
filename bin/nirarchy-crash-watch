@@ -1,0 +1,74 @@
+#!/bin/bash
+# nirarchy-crash-watch: Watch for process crashes and offer an opencode diagnosis
+# Ported from Omarchy's omarchy-crash-watch
+
+set -uo pipefail
+
+# systemd-coredump journals every core dump under this MESSAGE_ID.
+readonly COREDUMP_MESSAGE_ID=fc2e22bc6ee647b6b90729ab34a250b1
+
+readonly CRASH_GLYPH=$'\U000f16a1'
+
+readonly dedupe_seconds=${NIRARCHY_CRASH_DEDUPE_SECONDS:-60}
+readonly ignore_pattern=${NIRARCHY_CRASH_IGNORE:-}
+
+declare -A last_notified
+
+notify_wait() {
+  for _ in $(seq 1 60); do
+    dbus-send --session --dest=org.freedesktop.DBus --type=method_call --print-reply \
+      /org/freedesktop/DBus org.freedesktop.DBus.NameHasOwner string:org.freedesktop.Notifications 2>/dev/null |
+      grep -q true && return 0
+    sleep 1
+  done
+  return 1
+}
+
+save_state() {
+  mkdir -p "$HOME/.cache/nirarchy"
+  cat >"$HOME/.cache/nirarchy/last-crash" <<EOF
+pid=$1
+comm=$2
+exe=$3
+signal=$4
+when=$(date '+%Y-%m-%d %H:%M:%S')
+EOF
+}
+
+announce() {
+  local name=$1 pid=$2 exe=$3 signal=$4
+
+  notify_wait || return 1
+  save_state "$pid" "$name" "$exe" "$signal"
+
+  # mako rule [app-name=nirarchy-crash] runs nirarchy-agent-crash on click.
+  notify-send \
+    --app-name="nirarchy-crash" \
+    --urgency critical \
+    --icon=bug \
+    "$CRASH_GLYPH Process crashed: $name" \
+    "Click to diagnose with opencode" || return 1
+}
+
+journalctl --user -f -n 0 -o json "MESSAGE_ID=$COREDUMP_MESSAGE_ID" 2>/dev/null |
+  while IFS= read -r entry; do
+    IFS=$'\t' read -r comm pid exe signal < <(
+      jq -r '[(.COREDUMP_COMM // "-"),
+              (.COREDUMP_PID // "-"),
+              (.COREDUMP_EXE // "-"),
+              (.COREDUMP_SIGNAL_NAME // "-")] | @tsv' <<<"$entry" 2>/dev/null
+    )
+
+    [[ $pid =~ ^[0-9]+$ ]] || continue
+
+    name=$comm
+    [[ $exe == /* ]] && name=${exe##*/}
+
+    [[ -n $ignore_pattern && $name =~ $ignore_pattern ]] && continue
+    [[ $name == nirarchy-crash-* || $name == nirarchy-agent-* ]] && continue
+
+    now=$(date +%s)
+    ((now - ${last_notified[$name]:-0} < dedupe_seconds)) && continue
+
+    announce "$name" "$pid" "$exe" "$signal" && last_notified[$name]=$now
+  done

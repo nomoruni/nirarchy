@@ -1,0 +1,267 @@
+#!/bin/bash
+# nirarchy-menu: Launch the Nirarchy Menu or jump straight to a submenu
+
+BACK_TO_EXIT=false
+
+back_to() {
+  local parent_menu="$1"
+
+  if [[ $BACK_TO_EXIT == "true" ]]; then
+    exit 0
+  elif [[ -n $parent_menu ]]; then
+    "$parent_menu"
+  else
+    show_main_menu
+  fi
+}
+
+toggle_existing_menu() {
+  if pgrep -f "walker.*--dmenu" >/dev/null; then
+    walker --close >/dev/null 2>&1
+    exit 0
+  fi
+}
+
+menu() {
+  local prompt="$1"
+  local options="$2"
+  local extra="$3"
+  local preselect="$4"
+
+  read -r -a args <<<"$extra"
+  echo -e "$options" | nirarchy-launch-walker --dmenu --width 295 --minheight 1 --maxheight 630 -p "$prompt…" "${args[@]}" 2>/dev/null
+}
+
+terminal() {
+  setsid foot --app-id=org.nirarchy.terminal -e bash -c "$*" >/dev/null 2>&1 &
+}
+
+present_terminal() {
+  nirarchy-launch-floating-terminal-with-presentation "$1"
+}
+
+open_in_editor() {
+  notify-send -u low "Editing config file" "$1"
+  setsid foot --app-id=org.nirarchy.editor -e helix "$1" >/dev/null 2>&1 &
+}
+
+show_learn_menu() {
+  case $(menu "Learn" "󰌌  Keybindings\n󰣇  Arch\n󰖟  Niri\n󱚤  opencode") in
+  *Keybindings*) nirarchy-menu-keybindings ;;
+  *Niri*) xdg-open "https://github.com/YaLTeR/niri/wiki" ;;
+  *Arch*) xdg-open "https://wiki.archlinux.org/title/Main_page" ;;
+  *opencode*) xdg-open "https://opencode.ai/docs" ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_trigger_menu() {
+  case $(menu "Trigger" "󰔛  Reminder\n󰄀  Capture\n󰔎  Toggle") in
+  *Reminder*) show_reminder_menu ;;
+  *Capture*) show_capture_menu ;;
+  *Toggle*) show_toggle_menu ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_reminder_menu() {
+  case $(menu "Reminder" "󰔛  Set one\n󰔛  Show all\n󰔛  Clear all") in
+  *Set*) show_custom_reminder_input ;;
+  *"Show all"*) nirarchy-reminder show ;;
+  *"Clear all"*) nirarchy-reminder clear ;;
+  *) back_to show_trigger_menu ;;
+  esac
+}
+
+show_custom_reminder_input() {
+  local minutes
+  minutes=$(nirarchy-menu-input "Remind in minutes")
+
+  if [[ $minutes =~ ^[0-9]+$ ]] && ((minutes > 0)); then
+    show_reminder_message_input "$minutes"
+  elif [[ -n $minutes ]]; then
+    notify-send "Invalid reminder" "Enter the number of minutes" -u critical
+    show_custom_reminder_input
+  else
+    back_to show_reminder_menu
+  fi
+}
+
+show_reminder_message_input() {
+  local minutes="$1"
+  local message
+  message=$(nirarchy-menu-input "Reminder message")
+
+  if [[ -n $message ]]; then
+    nirarchy-reminder "$minutes" "$message"
+  else
+    nirarchy-reminder "$minutes"
+  fi
+}
+
+show_capture_menu() {
+  case $(menu "Capture" "󰄀  Screenshot\n󰑋  Screenrecord\n󰐍  Text Extraction\n󰉋  Color") in
+  *Screenshot*) nirarchy-capture-screenshot ;;
+  *Screenrecord*) show_screenrecord_menu ;;
+  *Text*) nirarchy-capture-text-extraction ;;
+  *Color*) pkill hyprpicker || hyprpicker -a ;;
+  *) back_to show_trigger_menu ;;
+  esac
+}
+
+show_screenrecord_menu() {
+  nirarchy-capture-screenrecording --stop-recording && exit 0
+
+  case $(menu "Screenrecord" "󰑋  With no audio\n󰑋  With desktop audio\n󰑋  With desktop + microphone audio") in
+  *"no audio"*) nirarchy-capture-screenrecording ;;
+  *"desktop audio") nirarchy-capture-screenrecording --with-desktop-audio ;;
+  *microphone*) nirarchy-capture-screenrecording --with-desktop-audio --with-microphone-audio ;;
+  *) back_to show_capture_menu ;;
+  esac
+}
+
+show_toggle_menu() {
+  local options="󱄄  Screensaver\n󰔎  Nightlight\n󰾧  Idle Lock\n󰂛  Notifications\n󰍜  Top Bar"
+
+  case $(menu "Toggle" "$options") in
+  *Screensaver*) nirarchy-system-lock ;;
+  *Nightlight*) nirarchy-toggle-nightlight ;;
+  *Idle*) nirarchy-toggle-idle ;;
+  *Notifications*) nirarchy-toggle-notification-silencing ;;
+  *Bar*) nirarchy-toggle-bar ;;
+  *) back_to show_trigger_menu ;;
+  esac
+}
+
+show_style_menu() {
+  case $(menu "Style" "󰸌  Theme\n󰸌  Background\n󱁐  About") in
+  *Theme*) nirarchy-theme-picker themes ;;
+  *Background*) nirarchy-theme-picker backgrounds ;;
+  *About*) nirarchy-about ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_setup_menu() {
+  local options="󰕾  Audio\n  Wifi\n󰂯  Bluetooth\n󱐋  Power Profile\n󰍹  Monitors\n󰌌  Keybindings\n󰦨  Config\n󰒓  NiriMod (GUI)"
+
+  case $(menu "Setup" "$options") in
+  *Audio*) nirarchy-launch-audio ;;
+  *Wifi*) nirarchy-launch-wifi ;;
+  *Bluetooth*) nirarchy-launch-bluetooth ;;
+  *Power*) show_setup_power_menu ;;
+  *Monitors* | *Keybindings* | *Input*) open_in_editor ~/.config/niri/config.kdl ;;
+  *Config*) show_setup_config_menu ;;
+  *NiriMod*) setsid nirimod >/dev/null 2>&1 & ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_setup_power_menu() {
+  local profile
+  profile=$(menu "Power Profile" "$(tlpctl list 2>/dev/null | grep -E '^\*?[[:space:]]*[a-z-]+:$' | tr -d '* :' )" "" "$(tlpctl get 2>/dev/null)")
+
+  if [[ -z $profile || $profile == CNCLD ]]; then
+    back_to show_setup_menu
+  else
+    tlpctl set "$profile"
+    notify-send -u low "Power Profile" "$profile (TLP)"
+    back_to show_setup_menu
+  fi
+}
+
+show_setup_config_menu() {
+  case $(menu "Config" "󰇅  Niri\n  Quickshell Bar\n󰌧  Walker\n󰍛  Mako\n󰍽  Hyprlock\n󰤟  Hypridle") in
+  *Niri*) open_in_editor ~/.config/niri/config.kdl ;;
+  *Quickshell*) open_in_editor ~/.config/quickshell/niri/Bar.qml ;;
+  *Walker*) open_in_editor ~/.config/walker/config.toml ;;
+  *Mako*) open_in_editor ~/.config/mako/config ;;
+  *Hyprlock*) open_in_editor ~/.config/hypr/hyprlock.conf ;;
+  *Hypridle*) open_in_editor ~/.config/hypr/hypridle.conf && pkill -x hypridle && setsid hypridle >/dev/null 2>&1 & ;;
+  *) back_to show_setup_menu ;;
+  esac
+}
+
+show_install_menu() {
+  case $(menu "Install" "󰣇  Package\n󰣇  AUR\n󰚩  AI Agent") in
+  *Package*) terminal nirarchy-pkg-install ;;
+  *AUR*) terminal nirarchy-pkg-aur-install ;;
+  *AI*)
+    notify-send -u low "AI Agent" "opencode is already installed.\nOpen it with Super + Shift + A"
+    ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_remove_menu() {
+  case $(menu "Remove" "󰣇  Package") in
+  *Package*) terminal nirarchy-pkg-remove ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_update_menu() {
+  case $(menu "Update" "󰚰  System") in
+  *System*) present_terminal "echo 'Updating system…'; yay" ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_about() {
+  nirarchy-about
+}
+
+show_system_menu() {
+  local options="󰌾  Lock\n󰒲  Suspend\n󰍃  Logout\n󰜉  Restart\n󰐥  Shutdown\n󰚝  Diagnose last crash\n󰂚  Debug report (opencode)"
+
+  case $(menu "System" "$options") in
+  *Lock*) nirarchy-system-lock ;;
+  *Suspend*) systemctl suspend ;;
+  *Logout*) nirarchy-system-logout ;;
+  *Restart*) nirarchy-system-reboot ;;
+  *Shutdown*) nirarchy-system-shutdown ;;
+  *Diagnose*) nirarchy-agent-crash ;;
+  *Debug*) nirarchy-debug --opencode ;;
+  *) back_to show_main_menu ;;
+  esac
+}
+
+show_main_menu() {
+  go_to_menu "$(menu "Go" "󰀻  Apps\n󰧑  Learn\n󱓞  Trigger\n󰸌  Style\n  Setup\n󰉉  Install\n󰭌  Remove\n  Update\n  About\n  System")"
+}
+
+go_to_menu() {
+  case "${1,,}" in
+  *apps*) nirarchy-launch-walker ;;
+  *learn*) show_learn_menu ;;
+  *trigger*) show_trigger_menu ;;
+  *reminder-set*) show_custom_reminder_input ;;
+  *reminder*) show_reminder_menu ;;
+  *background*) nirarchy-theme-picker backgrounds ;;
+  *capture*) show_capture_menu ;;
+  *screenrecord*) show_screenrecord_menu ;;
+  *style*) show_style_menu ;;
+  *theme*) nirarchy-theme-picker themes ;;
+  *toggle*) show_toggle_menu ;;
+  *setup*) show_setup_menu ;;
+  *power*) show_setup_power_menu ;;
+  *install*) show_install_menu ;;
+  *remove*) show_remove_menu ;;
+  *update*) show_update_menu ;;
+  *about*) show_about ;;
+  *system*) show_system_menu ;;
+  *) true ;;
+  esac
+}
+
+USER_EXTENSIONS="$HOME/.config/nirarchy/extensions/menu.sh"
+[[ -f $USER_EXTENSIONS ]] && source "$USER_EXTENSIONS"
+
+toggle_existing_menu
+
+if [[ -n $1 ]]; then
+  BACK_TO_EXIT=true
+  go_to_menu "$1"
+else
+  show_main_menu
+fi

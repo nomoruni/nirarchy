@@ -1,0 +1,6 @@
+#!/bin/bash
+# nirarchy-show-done: Presentation banner shown when a floating terminal command completes
+
+printf '\n  \033[1;32m✔ Done\033[0m\n\n'
+sleep 2
+exit 0

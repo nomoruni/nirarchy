@@ -1,0 +1,5 @@
+#!/bin/bash
+# nirarchy-launch-or-focus-tui: Launch a TUI in the terminal, or focus it if already open
+
+APP_ID="org.nirarchy.$(basename "$1")"
+exec nirarchy-launch-or-focus "$APP_ID" "nirarchy-launch-tui $*"

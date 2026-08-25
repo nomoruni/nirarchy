@@ -1,0 +1,65 @@
+#!/bin/bash
+# nirarchy-sys: system info provider for the quickshell bar
+case "$1" in
+cpu)
+    snap() { awk '/^cpu /{t=$2+$3+$4+$5+$6+$7+$8; idle=$5+$6; print t, idle}' /proc/stat; }
+    read -r t0 i0 < <(snap)
+    sleep 0.25
+    read -r t1 i1 < <(snap)
+    dt=$((t1 - t0))
+    di=$((i1 - i0))
+    ((dt > 0)) && echo $(((dt - di) * 100 / dt)) || echo 0
+    ;;
+battery)
+    for bat in /sys/class/power_supply/*; do
+        [[ -f $bat/capacity && -f $bat/status ]] || continue
+        cap=$(<"$bat/capacity")
+        status=$(<"$bat/status")
+        echo "$cap|$status"
+        exit 0
+    done
+    echo none
+    ;;
+audio)
+    vol=$(pamixer --get-volume 2>/dev/null || echo 0)
+    mute=$(pamixer --get-mute 2>/dev/null)
+    [[ $mute == true ]] && m=1 || m=0
+    echo "${vol:-0}|$m"
+    ;;
+net)
+    if ip link show 2>/dev/null | grep -qE '^[0-9]+: (eth|en)[a-z0-9@]+.*(state UP|<.*UP.*>)'; then
+        iface=$(ip -o link show up | awk -F': ' '/^[0-9]+: (eth|en)/ && !/lo:/ {print $2; exit}' | cut -d@ -f1)
+        [[ -n $iface ]] && carrier=$(cat "/sys/class/net/$iface/carrier" 2>/dev/null || echo 0)
+        if [[ $carrier == 1 ]]; then
+            echo "eth|100|"
+            exit 0
+        fi
+    fi
+    line=$(nmcli -t -f IN-USE,SIGNAL,SSID device wifi list --rescan no 2>/dev/null | grep '^\*' | head -n1)
+    if [[ -n $line ]]; then
+        sig=$(echo "$line" | cut -d: -f2)
+        ssid=$(echo "$line" | cut -d: -f3-)
+        echo "wifi|$sig|$ssid"
+    else
+        echo down
+    fi
+    ;;
+bt)
+    if ! command -v bluetoothctl >/dev/null; then
+        echo none
+        exit 0
+    fi
+    info=$(bluetoothctl show 2>/dev/null)
+    if [[ -z $info ]]; then
+        echo none
+        exit 0
+    fi
+    powered=$(echo "$info" | grep -q 'Powered: yes' && echo on || echo off)
+    conns=$(bluetoothctl devices Connected 2>/dev/null | grep -c . || true)
+    echo "$powered|$conns"
+    ;;
+*)
+    echo "usage: nirarchy-sys {cpu|battery|audio|net|bt}" >&2
+    exit 1
+    ;;
+esac

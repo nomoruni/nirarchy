@@ -1,0 +1,57 @@
+#!/bin/bash
+# nirarchy-menu-keybindings: Show the keybinding cheat sheet in Walker
+
+cat <<EOF | walker --dmenu -p 'Keybindings' --width 800 --minheight 1 --maxheight 630 2>/dev/null
+SUPER + Return                      → Terminal
+SUPER + Ctrl + Return               → opencode AI agent
+SUPER + Shift + A                   → opencode AI agent
+SUPER + W                           → Browser
+SUPER + E                           → File manager
+SUPER + Shift + N                   → Editor (Helix)
+SUPER + Space                       → Launch apps (Walker)
+SUPER + Alt + Space                 → Nirarchy menu
+SUPER + Escape                      → System menu
+SUPER + K                           → This keybinding list
+SUPER + V                           → Clipboard history
+SUPER + Ctrl + E                    → Emoji picker
+
+SUPER + Q                           → Close window
+SUPER + F                           → Full screen
+SUPER + T                           → Toggle floating/tiling
+SUPER + J                           → Maximize column toggle
+SUPER + O                           → Switch preset column width
+Ctrl + Alt + Delete                 → Close all windows
+
+SUPER + Arrows / H L                → Focus window or column
+Alt + Tab                           → Cycle windows
+SUPER + 1…0                         → Switch workspace
+SUPER + Shift + 1…0                 → Move window to workspace
+SUPER + Tab / Shift+Tab             → Next/previous workspace
+SUPER + S                           → Toggle scratchpad workspace
+SUPER + Alt + S                     → Move window to scratchpad
+SUPER + Wheel                       → Scroll workspaces
+SUPER + Minus / Equal               → Shrink/expand column width
+
+PRINT                               → Screenshot (smart region)
+SUPER + PRINT                       → Color picker
+ALT + PRINT                         → Screenrecord menu
+SUPER + Ctrl + PRINT                → Extract text (OCR)
+
+SUPER + Comma                       → Dismiss notification
+SUPER + Shift + Comma               → Dismiss all notifications
+SUPER + Ctrl + Comma                → Silence notifications
+
+SUPER + Ctrl + I                    → Toggle idle lock
+SUPER + Ctrl + N                    → Toggle nightlight
+SUPER + Shift + Space               → Toggle top bar
+SUPER + Ctrl + Space                → Background menu
+SUPER + Shift + Ctrl + Space        → Theme menu
+
+SUPER + Ctrl + A                    → Audio controls
+SUPER + Ctrl + B                    → Bluetooth controls
+SUPER + Ctrl + W                    → Wifi controls
+SUPER + Ctrl + T                    → Activity (btop)
+SUPER + Ctrl + L                    → Lock system
+XF86Audio*                          → Volume (SwayOSD)
+XF86MonBrightness*                  → Brightness (SwayOSD)
+EOF

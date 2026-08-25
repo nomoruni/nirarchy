@@ -1,0 +1,14 @@
+#!/bin/bash
+# nirarchy-capture-text-extraction: OCR text from a screen region into the clipboard
+
+SELECTION=$(slurp 2>/dev/null)
+[[ -z $SELECTION ]] && exit 0
+
+TEXT=$(grim -g "$SELECTION" - | tesseract stdin stdout 2>/dev/null)
+
+if [[ -n ${TEXT// } ]]; then
+  echo "$TEXT" | wl-copy
+  notify-send -u low "Text extracted" "Copied to clipboard:\n$(echo "$TEXT" | head -c 120)…"
+else
+  notify-send -u critical "Text extraction" "No text found"
+fi

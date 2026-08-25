@@ -1,0 +1,15 @@
+#!/bin/bash
+# nirarchy-toggle-idle: Toggle locking on idle (stops/starts hypridle)
+
+STATE_DIR="$HOME/.cache/nirarchy"
+mkdir -p "$STATE_DIR"
+
+if [[ -f "$STATE_DIR/idle-off" ]]; then
+  rm -f "$STATE_DIR/idle-off"
+  systemctl --user start hypridle.service 2>/dev/null || setsid hypridle >/dev/null 2>&1 &
+  notify-send -u low "Idle Lock" "Enabled"
+else
+  touch "$STATE_DIR/idle-off"
+  systemctl --user stop hypridle.service 2>/dev/null || pkill -x hypridle
+  notify-send -u low "Idle Lock" "Disabled"
+fi

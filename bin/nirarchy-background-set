@@ -1,0 +1,21 @@
+#!/bin/bash
+# nirarchy-background-set: Set the wallpaper from the current theme (or an explicit file)
+
+CFG="$HOME/.config/nirarchy"
+
+if [[ -n $1 && -f $1 ]]; then
+  file="$1"
+else
+  file=$(nirarchy-launch-walker -m menus:nirarchybackgrounds --width 800 --minheight 400 2>/dev/null)
+  # Walker menus return the chosen entry via stdout only when activated;
+  # fall back to the symlink target if empty.
+  [[ -z ${file:-} ]] && exit 0
+fi
+
+[[ -f $file ]] || exit 0
+
+ln -sfn "$(readlink -f "$file")" "$CFG/current/background"
+pkill swaybg 2>/dev/null || true
+sleep 0.2
+setsid swaybg -i "$(readlink -f "$file")" -m fill >/dev/null 2>&1 &
+notify-send -u low "Background set" "$(basename "$file")"

@@ -1,0 +1,4 @@
+#!/bin/bash
+# nirarchy-pkg-add: Install Arch packages if missing
+
+sudo pacman -S --noconfirm --needed "$@"

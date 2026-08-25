@@ -1,0 +1,9 @@
+#!/bin/bash
+# nirarchy-menu-input: Prompt for text input with Walker
+
+prompt="${1:-Input}"
+if (($# > 0)); then
+  shift
+fi
+
+nirarchy-launch-walker --dmenu --inputonly --width 295 --minheight 1 --maxheight 1 -p "$prompt…" "$@" 2>/dev/null

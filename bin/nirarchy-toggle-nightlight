@@ -1,0 +1,12 @@
+#!/bin/bash
+# nirarchy-toggle-nightlight: Toggle night light (gammastep)
+
+if pgrep -x gammastep >/dev/null || pgrep -x wlsunset >/dev/null; then
+  pkill -x gammastep 2>/dev/null
+  pkill -x wlsunset 2>/dev/null
+  notify-send -u low "Nightlight" "Off"
+else
+  temp=$(cat "$HOME/.config/nirarchy/nightlight-temp" 2>/dev/null || echo 4000)
+  setsid gammastep -O "$temp" >/dev/null 2>&1 &
+  notify-send -u low "Nightlight" "On (${temp}K)"
+fi

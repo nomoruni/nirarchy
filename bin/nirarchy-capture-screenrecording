@@ -1,0 +1,39 @@
+#!/bin/bash
+# nirarchy-capture-screenrecording: Screen recording via gpu-screen-recorder with audio options
+
+STOP=false
+AUDIO_ARGS=()
+WEBcam_args=()
+
+while (($# > 0)); do
+  case "$1" in
+  --stop-recording) STOP=true ;;
+  --with-desktop-audio) AUDIO_ARGS+=(-a "$(pactl get-default-sink).monitor") ;;
+  --with-microphone-audio) AUDIO_ARGS+=(-a "$(pactl get-default-source)") ;;
+  esac
+  shift
+done
+
+if $STOP; then
+  pkill -SIGINT -f gpu-screen-recorder && notify-send -u normal "Screen recording" "Stopped and saved to ~/Videos" || notify-send -u low "Screen recording" "Not recording"
+  exit 0
+fi
+
+if pgrep -f gpu-screen-recorder >/dev/null; then
+  notify-send -u low "Screen recording" "Already recording"
+  exit 1
+fi
+
+mkdir -p "$HOME/Videos"
+OUTPUT="$HOME/Videos/recording-$(date +'%Y-%m-%d_%H-%M-%S').mp4"
+
+setsid gpu-screen-recorder \
+  -w screen \
+  -f 60 \
+  -a "${AUDIO_ARGS[@]}" \
+  -o "$OUTPUT" >/dev/null 2>&1 &
+
+sleep 1
+pgrep -f gpu-screen-recorder >/dev/null &&
+  notify-send -u normal "Screen recording started" "$OUTPUT" ||
+  notify-send -u critical "Screen recording failed"

@@ -1,0 +1,5 @@
+#!/bin/bash
+# nirarchy-launch-bluetooth: Bluetooth controls (bluetui TUI), same as Omarchy
+
+rfkill unblock bluetooth 2>/dev/null
+exec nirarchy-launch-or-focus-tui bluetui

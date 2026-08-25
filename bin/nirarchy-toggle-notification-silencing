@@ -1,0 +1,11 @@
+#!/bin/bash
+# nirarchy-toggle-notification-silencing: Toggle mako do-not-disturb mode
+
+makoctl mode | grep -q do-not-disturb && mode="default" || mode="do-not-disturb"
+makoctl mode "$mode"
+
+if [[ $mode == "do-not-disturb" ]]; then
+  notify-send -u low "Notifications" "Silenced"
+else
+  notify-send -u low "Notifications" "Enabled"
+fi

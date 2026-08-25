@@ -1,0 +1,72 @@
+#!/bin/bash
+# nirarchy-debug: Collect a system debug report; optionally hand it to opencode
+# Usage: nirarchy-debug [--print] [--opencode]
+
+set -uo pipefail
+
+PRINT_ONLY=false
+TO_OPENCODE=false
+
+while (($# > 0)); do
+  case "$1" in
+  --print) PRINT_ONLY=true ;;
+  --opencode) TO_OPENCODE=true ;;
+  *) echo "Usage: nirarchy-debug [--print] [--opencode]" >&2; exit 1 ;;
+  esac
+  shift
+done
+
+LOG_FILE="/tmp/nirarchy-debug.log"
+
+BRANCH="niri"
+cat >"$LOG_FILE" <<EOF
+Date: $(date)
+Hostname: $(hostname)
+Desktop: Nirarchy (niri + quickshell)
+
+=========================================
+SYSTEM INFORMATION
+=========================================
+$(inxi -Farz 2>/dev/null || fastfetch)
+
+=========================================
+JOURNALCTL (CURRENT BOOT, WARNINGS+ERRORS)
+=========================================
+$(journalctl -b -p 4..1 --no-pager 2>/dev/null | tail -400)
+
+=========================================
+USER UNITS (FAILED / NIRARCHY)
+=========================================
+$(systemctl --user --failed --no-pager 2>/dev/null)
+$(systemctl --user list-units 'nirarchy-*' 'elephant*' --no-pager 2>/dev/null)
+
+=========================================
+CORE DUMPS (LAST 20)
+=========================================
+$(coredumpctl list --no-pager 2>/dev/null | tail -20)
+
+=========================================
+NIRI CONFIG VALIDATION
+=========================================
+$(niri validate -c ~/.config/niri/config.kdl 2>&1)
+
+=========================================
+INSTALLED PACKAGES
+=========================================
+$(pacman -Qqe | sort)
+EOF
+
+if $PRINT_ONLY; then
+  cat "$LOG_FILE"
+  exit 0
+fi
+
+if $TO_OPENCODE; then
+  setsid foot --app-id=org.nirarchy.opencode -e bash -c \
+    'opencode "This is the nirarchy-debug system report. Analyze it for problems, errors and crash patterns, then propose fixes. Report: $(cat /tmp/nirarchy-debug.log)"' \
+    >/dev/null 2>&1 &
+  exit 0
+fi
+
+echo "Report written to $LOG_FILE"
+echo "Options: --print to view, --opencode to analyze with opencode"

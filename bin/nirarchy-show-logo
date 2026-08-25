@@ -1,0 +1,8 @@
+#!/bin/bash
+# nirarchy-show-logo: Presentation banner shown at start of floating terminals
+
+printf '\n'
+printf '  \033[1;36m╭──────────────────────────────╮\n'
+printf '  \033[1;36m│   \033[0;97m N I R A R C H Y \033[1;36m        │\n'
+printf '  \033[1;36m╰──────────────────────────────╯\n'
+printf '\n'

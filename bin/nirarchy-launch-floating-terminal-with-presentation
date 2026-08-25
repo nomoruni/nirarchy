@@ -1,0 +1,5 @@
+#!/bin/bash
+# nirarchy-launch-floating-terminal-with-presentation: Floating terminal running a command with logo/done banners
+
+cmd="$*"
+setsid foot --app-id=org.nirarchy.terminal --title="Nirarchy" -e bash -c "nirarchy-show-logo; $cmd; code=\$?; if (( code != 130 )); then nirarchy-show-done; fi; exit \$code" >/dev/null 2>&1 &

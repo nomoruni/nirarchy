@@ -1,0 +1,155 @@
+#!/bin/bash
+# nirarchy-theme-set: Apply a theme (colors, walker, mako, hyprlock) and refresh running apps
+
+set -euo pipefail
+
+DATA="$HOME/.local/share/nirarchy"
+CFG="$HOME/.config"
+THEMES_DIR="$DATA/themes"
+
+name="${1:-}"
+if [[ -z $name ]]; then
+  echo "Usage: nirarchy-theme-set <theme-name>"
+  echo "Available themes:"
+  ls "$THEMES_DIR" 2>/dev/null
+  exit 1
+fi
+
+theme_dir="$THEMES_DIR/$name"
+[[ -d $theme_dir ]] || { echo "Theme not found: $name" >&2; exit 1; }
+
+mkdir -p "$CFG/nirarchy/current" "$CFG/walker/themes/omarchy-default" "$CFG/mako" "$CFG/hypr"
+
+ln -sfn "$theme_dir" "$CFG/nirarchy/current/theme"
+
+# Read palette from colors.toml
+declare -A C
+while IFS="= " read -r key value; do
+  [[ $key =~ ^[a-z0-9_]+$ ]] && C[$key]="${value//\"/}"
+done < <(grep -E '^[a-z0-9_]+ ?=' "$theme_dir/colors.toml")
+
+fg="${C[foreground]:-#ffffff}"
+bg="${C[background]:-#000000}"
+accent="${C[accent]:-$C[color4]}"
+
+to_rgb() {
+  local h="${1#\#}"
+  printf '%d,%d,%d' "0x${h:0:2}" "0x${h:2:2}" "0x${h:4:2}"
+}
+
+# Walker theme (colors + Omarchy layout/style)
+cp "$DATA/default/walker/layout.xml" "$CFG/walker/themes/omarchy-default/layout.xml"
+{
+  cat <<EOF
+@define-color selected-text ${accent};
+@define-color text ${fg};
+@define-color base ${bg};
+@define-color border ${fg};
+@define-color foreground ${fg};
+@define-color background ${bg};
+EOF
+  grep -v '^@import' "$DATA/default/walker/style.css"
+} > "$CFG/walker/themes/omarchy-default/style.css"
+
+# Mako notification theming
+{
+  echo "include=$DATA/default/mako/core.ini"
+  echo ""
+  echo "text-color=$fg"
+  echo "border-color=$accent"
+  echo "background-color=$bg"
+} > "$CFG/mako/config"
+
+# Hyprlock variables
+{
+  echo "\$color = rgba($(to_rgb "$bg"), 1.0)"
+  echo "\$inner_color = rgba($(to_rgb "$bg"), 0.8)"
+  echo "\$outer_color = rgba($(to_rgb "$fg"), 1.0)"
+  echo "\$font_color = rgba($(to_rgb "$fg"), 1.0)"
+  echo "\$check_color = rgba($(to_rgb "$accent"), 1.0)"
+} > "$theme_dir/hyprlock.conf"
+
+# SwayOSD theme (GTK CSS vars)
+{
+  echo "@define-color border-color $fg;"
+  echo "@define-color background-color $bg;"
+  echo "@define-color label $fg;"
+  echo "@define-color image $accent;"
+  echo "@define-color progress $accent;"
+} > "$theme_dir/swayosd.css"
+
+# Foot terminal colors (stable real file so running terminals hot-reload)
+strip() { echo "${1#\#}"; }
+tmp="$CFG/nirarchy/current/.foot.ini.tmp"
+{
+  echo "[colors-dark]"
+  echo "foreground=$(strip "$fg")"
+  echo "background=$(strip "$bg")"
+  echo "selection-foreground=$(strip "${C[selection_foreground]:-$fg}")"
+  echo "selection-background=$(strip "${C[selection_background]:-$accent}")"
+  echo "cursor=$(strip "$bg") $(strip "${C[cursor]:-$fg}")"
+  for i in 0 1 2 3 4 5 6 7; do
+    echo "regular$i=$(strip "${C[color$i]}")"
+  done
+  for i in 8 9 10 11 12 13 14 15; do
+    echo "bright$((i - 8))=$(strip "${C[color$i]}")"
+  done
+} > "$tmp"
+mv -f "$tmp" "$CFG/nirarchy/current/foot.ini"
+
+# Niri border colors (rewrite only the managed slice of config.kdl)
+niri_cfg="$CFG/niri/config.kdl"
+if [[ $name == tokyo-night ]]; then
+  grad_from="#33ccffee"
+  grad_to="#00ff99ee"
+else
+  grad_from="${C[accent]}"
+  grad_to="${C[color6]:-${C[color4]}}"
+fi
+inactive_border="${C[color8]:-#595959}aa"
+python3 - "$niri_cfg" "$grad_from" "$grad_to" "$inactive_border" <<'PYEOF'
+import sys, re
+path, gfrom, gto, inact = sys.argv[1:5]
+s = open(path).read()
+block = (
+    "// NIRARCHY-THEME:BEGIN (managed by nirarchy-theme-set)\n"
+    "    border {\n"
+    "        on\n"
+    "        width 2\n"
+    f'        active-gradient from="{gfrom}" to="{gto}" angle=45\n'
+    f'        inactive-color "{inact}"\n'
+    "    }\n"
+    "// NIRARCHY-THEME:END"
+)
+new = re.sub(r"// NIRARCHY-THEME:BEGIN.*?// NIRARCHY-THEME:END", block.replace("\\", "\\\\"), s, flags=re.S)
+open(path, "w").write(new)
+PYEOF
+
+# Restart walker (CSS) and swayosd-server (GTK CSS loads at startup)
+pkill -f "walker --gapplication-service" 2>/dev/null || true
+pkill -x walker 2>/dev/null || true
+systemctl --user restart swayosd-server.service 2>/dev/null || { pkill -x swayosd-server 2>/dev/null || true; sleep 0.2; setsid swayosd-server >/dev/null 2>&1 & }
+
+
+
+# Background: keep if it belongs to this theme, else pick random
+current_bg=$(readlink -f "$CFG/nirarchy/current/background" 2>/dev/null || true)
+if [[ -z ${current_bg:-} ]] || [[ $current_bg != "$theme_dir/backgrounds/"* ]]; then
+  bg_file=$(find "$theme_dir/backgrounds" -type f \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.jpeg' -o -iname '*.webp' \) 2>/dev/null | sort | shuf -n1)
+  [[ -n ${bg_file:-} ]] && ln -sfn "$bg_file" "$CFG/nirarchy/current/background"
+fi
+
+echo "$name" > "$CFG/nirarchy/theme-name"
+
+# Restart wallpaper daemon with new background
+pkill swaybg 2>/dev/null || true
+sleep 0.2
+setsid swaybg -i "$(readlink -f "$CFG/nirarchy/current/background")" -m fill >/dev/null 2>&1 &
+
+# Reload mako
+if ! makoctl reload >/dev/null 2>&1; then
+  pkill -x mako 2>/dev/null || true
+  setsid mako >/dev/null 2>&1 &
+fi
+
+notify-send -u low "Theme applied" "$name" 2>/dev/null || true

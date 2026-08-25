@@ -1,0 +1,253 @@
+// Nirarchy — Omarchy experience on Niri
+// Adapted from https://github.com/basecamp/omarchy (Hyprland) to Niri
+
+prefer-no-csd
+
+environment {
+    XDG_CURRENT_DESKTOP "niri"
+    XDG_SESSION_DESKTOP "niri"
+    QT_QPA_PLATFORMTHEME "qt6ct"
+}
+
+input {
+    keyboard {
+        repeat-delay 400
+        repeat-rate 40
+        track-layout "global"
+    }
+
+    touchpad {
+        tap
+        dwt
+        natural-scroll
+        click-method "clickfinger"
+    }
+
+    mouse {
+    }
+
+    warp-mouse-to-focus
+    focus-follows-mouse max-scroll-amount="0%"
+}
+
+cursor {
+    xcursor-theme "Breeze_Light"
+    xcursor-size 24
+    hide-when-typing true
+    hide-after-inactive-ms 5000
+}
+
+gestures {
+    hot-corners {
+        off
+    }
+}
+
+layout {
+    gaps 5
+
+    struts {
+        left 5
+        right 5
+        top 5
+        bottom 5
+    }
+
+    // NIRARCHY-THEME:BEGIN (managed by nirarchy-theme-set)
+    border {
+        on
+        width 2
+        active-gradient from="#7daea3" to="#89b482" angle=45
+        inactive-color "#3c3836aa"
+    }
+// NIRARCHY-THEME:END
+
+    focus-ring {
+        off
+    }
+
+    shadow {
+        on
+        softness 15
+        spread 3
+        offset y=2
+        color "#1a1a1aee"
+    }
+
+    default-column-width { proportion 0.5; }
+    center-focused-column "never"
+}
+
+spawn-at-startup "systemctl" "--user" "start" "nirarchy-bar.service"
+spawn-at-startup "mako"
+spawn-at-startup "hypridle"
+spawn-at-startup "swayosd-server"
+spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
+spawn-at-startup "sh" "-c" "swaybg -i $HOME/.config/nirarchy/current/background -m fill"
+spawn-at-startup "wl-paste" "--watch" "cliphist" "store"
+spawn-at-startup "nirarchy-first-run"
+
+window-rule {
+    match app-id=r"^(pavucontrol|blueman-manager|nm-connection-editor|org.gnome.Calculator|satty|com.github.hlissner.*)$"
+    open-floating true
+}
+
+window-rule {
+    match title=r"(Picture-in-Picture|pipewire)"
+    open-floating true
+}
+
+binds {
+    // Applications (Omarchy parity)
+    Mod+Return { spawn "foot"; }
+    Mod+Ctrl+Return { spawn "nirarchy-agent"; }
+    Mod+Shift+A { spawn "nirarchy-agent"; }
+    Mod+W { spawn "firefox"; }
+    Mod+Shift+B { spawn "firefox"; }
+    Mod+E { spawn "nirarchy-launch-files"; }
+    Mod+Shift+N { spawn "foot" "-e" "helix"; }
+
+    // Windows
+    Mod+Q { close-window; }
+    Mod+F { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+T { toggle-window-floating; }
+    Mod+J { maximize-column; }
+    Mod+O { switch-preset-column-width; }
+    Ctrl+Alt+Delete { spawn "nirarchy-close-all-windows"; }
+
+    // Focus
+    Mod+Left { focus-column-left; }
+    Mod+Right { focus-column-right; }
+    Mod+Up { focus-window-up; }
+    Mod+Down { focus-window-down; }
+    Mod+H { focus-column-left; }
+    Mod+L { focus-column-right; }
+    Alt+Tab { focus-window-down; }
+    Alt+Shift+Tab { focus-window-up; }
+
+    // Workspaces
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+    Mod+0 { focus-workspace 10; }
+    Mod+Shift+1 { move-window-to-workspace 1; }
+    Mod+Shift+2 { move-window-to-workspace 2; }
+    Mod+Shift+3 { move-window-to-workspace 3; }
+    Mod+Shift+4 { move-window-to-workspace 4; }
+    Mod+Shift+5 { move-window-to-workspace 5; }
+    Mod+Shift+6 { move-window-to-workspace 6; }
+    Mod+Shift+7 { move-window-to-workspace 7; }
+    Mod+Shift+8 { move-window-to-workspace 8; }
+    Mod+Shift+9 { move-window-to-workspace 9; }
+    Mod+Shift+0 { move-window-to-workspace 10; }
+    Mod+Tab { focus-workspace-down; }
+    Mod+Shift+Tab { focus-workspace-up; }
+    Mod+Ctrl+Tab { focus-workspace-previous; }
+    Mod+S { spawn "nirarchy-scratchpad"; }
+    Mod+Alt+S { move-window-to-workspace "scratchpad"; }
+
+    // Move windows between columns
+    Mod+Shift+Left { move-column-left; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+Up { move-window-up; }
+    Mod+Shift+Down { move-window-down; }
+
+    // Column sizing (Omarchy resize keys)
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Equal { set-column-width "+10%"; }
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+Equal { set-window-height "+10%"; }
+
+    // Scroll workspaces with mouse wheel
+    Mod+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
+    Mod+WheelScrollUp cooldown-ms=150 { focus-workspace-up; }
+
+    // Monitors
+    Mod+Shift+Alt+Left { move-workspace-to-monitor "left"; }
+    Mod+Shift+Alt+Right { move-workspace-to-monitor "right"; }
+    Mod+Shift+Alt+Up { move-workspace-to-monitor "up"; }
+    Mod+Shift+Alt+Down { move-workspace-to-monitor "down"; }
+    Ctrl+Alt+Tab { focus-monitor-next; }
+    Ctrl+Alt+Shift+Tab { focus-monitor-previous; }
+
+    // Menus (Walker/Elephant, same look as Omarchy)
+    Mod+Space { spawn "nirarchy-launch-walker"; }
+    Mod+Alt+Space { spawn "nirarchy-menu"; }
+    Mod+Escape { spawn "nirarchy-menu" "system"; }
+    Mod+Shift+K { spawn "nirarchy-menu-keybindings"; }
+    Mod+V { spawn "nirarchy-launch-walker" "-m" "clipboard"; }
+    Mod+Ctrl+E { spawn "nirarchy-launch-walker" "-m" "symbols"; }
+    Mod+Ctrl+C { spawn "nirarchy-menu" "capture"; }
+    Mod+Ctrl+O { spawn "nirarchy-menu" "toggle"; }
+    Mod+Ctrl+R { spawn "nirarchy-menu" "reminder-set"; }
+
+    // Style
+    Mod+Shift+Space { spawn "nirarchy-toggle-bar"; }
+    Mod+Ctrl+Space { spawn "nirarchy-theme-picker" "backgrounds"; }
+    Mod+Shift+Ctrl+Space { spawn "nirarchy-theme-picker" "themes"; }
+
+    // Captures
+    Print { spawn "nirarchy-capture-screenshot"; }
+    Alt+Print { spawn "nirarchy-menu" "screenrecord"; }
+    Mod+Print { spawn "sh" "-c" "pkill hyprpicker || hyprpicker -a"; }
+    Mod+Ctrl+Print { spawn "nirarchy-capture-text-extraction"; }
+
+    // Notifications
+    Mod+Comma { spawn "makoctl" "dismiss"; }
+    Mod+Shift+Comma { spawn "makoctl" "dismiss" "--all"; }
+    Mod+Alt+Comma { spawn "makoctl" "invoke"; }
+    Mod+Ctrl+Comma { spawn "nirarchy-toggle-notification-silencing"; }
+
+    // Toggles
+    Mod+Ctrl+I { spawn "nirarchy-toggle-idle"; }
+    Mod+Ctrl+N { spawn "nirarchy-toggle-nightlight"; }
+
+    // Control panels
+    Mod+Ctrl+A { spawn "nirarchy-launch-audio"; }
+    Mod+Ctrl+B { spawn "nirarchy-launch-bluetooth"; }
+    Mod+Ctrl+W { spawn "nirarchy-launch-wifi"; }
+    Mod+Ctrl+T { spawn "nirarchy-launch-or-focus-tui" "btop"; }
+    Mod+Ctrl+X { spawn "nirarchy-agent"; }
+
+    // Reminders
+    Mod+Ctrl+Alt+R { spawn "nirarchy-reminder" "show"; }
+
+    // Info popups
+    Mod+Ctrl+Alt+T { spawn "sh" "-c" "notify-send -u low \"    $(date +'%A %H:%M  ·  %d %B %Y  ·  Week %V')\""; }
+    Mod+Ctrl+Alt+B { spawn "sh" "-c" "notify-send -u low \"$(nirarchy-battery-status)\""; }
+
+    // Lock & power
+    Mod+Ctrl+L { spawn "nirarchy-system-lock"; }
+    XF86PowerOff { spawn "nirarchy-menu" "system"; }
+
+    // Media & brightness (with SwayOSD)
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "swayosd-client" "--output-volume" "raise"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "swayosd-client" "--output-volume" "lower"; }
+    XF86AudioMute allow-when-locked=true { spawn "swayosd-client" "--output-volume" "mute-toggle"; }
+    Alt+XF86AudioRaiseVolume allow-when-locked=true { spawn "swayosd-client" "--output-volume" "+1"; }
+    Alt+XF86AudioLowerVolume allow-when-locked=true { spawn "swayosd-client" "--output-volume" "-1"; }
+    XF86AudioMicMute allow-when-locked=true { spawn "pamixer" "--default-source" "-t"; }
+    XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "+5%"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "5%-"; }
+    Alt+XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "+1%"; }
+    Alt+XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "1%-"; }
+    XF86AudioNext { spawn "playerctl" "next"; }
+    XF86AudioPause { spawn "playerctl" "play-pause"; }
+    XF86AudioPlay { spawn "playerctl" "play-pause"; }
+    XF86AudioPrev { spawn "playerctl" "previous"; }
+    XF86Calculator { spawn "sh" "-c" "gtk-launch org.gnome.Calculator || qalculate-gtk"; }
+
+    // Niri extras
+    Mod+Shift+Slash { show-hotkey-overlay; }
+    Mod+BracketLeft { consume-or-expel-window-left; }
+    Mod+BracketRight { consume-or-expel-window-right; }
+}
+
+animations

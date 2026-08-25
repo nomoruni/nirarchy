@@ -1,0 +1,4 @@
+#!/bin/bash
+# nirarchy-system-reboot: Reboot the computer
+
+systemctl reboot

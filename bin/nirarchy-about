@@ -1,0 +1,4 @@
+#!/bin/bash
+# nirarchy-about: Show system info in a floating terminal
+
+exec nirarchy-launch-floating-terminal-with-presentation fastfetch

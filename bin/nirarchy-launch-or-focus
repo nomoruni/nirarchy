@@ -1,0 +1,19 @@
+#!/bin/bash
+# nirarchy-launch-or-focus: Launch an app or focus an existing window matching a pattern
+
+if (($# == 0)); then
+  echo "Usage: nirarchy-launch-or-focus [window-pattern] [launch-command]"
+  exit 1
+fi
+
+WINDOW_PATTERN="$1"
+LAUNCH_COMMAND="${2:-$WINDOW_PATTERN}"
+
+WINDOW_ID=$(niri msg --json windows 2>/dev/null | jq -r --arg p "$WINDOW_PATTERN" '
+  .[] | select((.app_id // "" | test($p; "i")) or (.title // "" | test($p; "i"))) | .id' | head -n1)
+
+if [[ -n $WINDOW_ID ]]; then
+  exec niri msg action focus-window --id "$WINDOW_ID" >/dev/null 2>&1
+else
+  setsid bash -c "$LAUNCH_COMMAND" >/dev/null 2>&1 &
+fi

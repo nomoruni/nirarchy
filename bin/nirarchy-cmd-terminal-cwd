@@ -1,0 +1,19 @@
+#!/bin/bash
+# nirarchy-cmd-terminal-cwd: Print the cwd of the focused terminal window (best effort)
+
+pid=$(niri msg --json focused-window 2>/dev/null | jq -r '.pid // empty')
+
+shell_pid="$pid"
+if [[ -n $shell_pid ]]; then
+  child=$(pgrep -P "$shell_pid" | tail -n1)
+  [[ -n $child ]] && shell_pid=$child
+  cwd=$(readlink -f "/proc/$shell_pid/cwd" 2>/dev/null)
+  shell=$(readlink -f "/proc/$shell_pid/exe" 2>/dev/null)
+
+  if grep -qs "$shell" /etc/shells && [[ -d $cwd ]]; then
+    echo "$cwd"
+    exit 0
+  fi
+fi
+
+echo "$HOME"
