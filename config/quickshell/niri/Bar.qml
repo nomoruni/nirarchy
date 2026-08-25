@@ -84,6 +84,7 @@ PanelWindow {
         property string glyph: ""
         property int glyphPixel: Theme.fontSize + 2
         property color glyphTint: Qt.alpha(Theme.fg, 1)
+        property string imageSource: ""
         property string label: ""
         property string tip: ""
         property var onClickAction: null
@@ -110,6 +111,17 @@ PanelWindow {
                 font.family: Theme.fontFamily
                 font.pixelSize: btnRoot.glyphPixel
                 color: btnRoot.dangerColor ? Theme.red : btnRoot.accentColor ? Theme.accent : btnRoot.glyphTint
+            }
+
+            Image {
+                visible: btnRoot.imageSource !== ""
+                source: btnRoot.imageSource
+                width: btnRoot.glyphPixel
+                height: btnRoot.glyphPixel
+                sourceSize: Qt.size(btnRoot.glyphPixel, btnRoot.glyphPixel)
+                smooth: true
+                layer.enabled: true
+                layer.effect: null
             }
 
             Text {
@@ -214,7 +226,7 @@ PanelWindow {
             spacing: 0
 
             BarButton {
-                glyph: "\ue900"
+                imageSource: Theme.dataDir + "/nirarchy-menu-icon.png"
                 glyphPixel: 19
                 tip: "Nirarchy Menu\n\nSuper + Alt + Space"
                 onClickAction: () => Actions.detached("nirarchy-menu")

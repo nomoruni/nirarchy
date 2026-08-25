@@ -62,7 +62,8 @@ if ! $NO_PKG; then
     gpu-screen-recorder gammastep wiremix \
     tesseract tesseract-data-eng \
     networkmanager iwd bluez bluez-utils libqalculate \
-    xwayland-satellite inxi expac
+    sddm qt6-declarative qt6-svg \
+    xwayland-satellite inxi expac python-pillow
   ok "repo packages"
 
   say "Installing AUR packages (yay)"
@@ -76,7 +77,8 @@ if ! $NO_PKG; then
   yay -S --needed --noconfirm \
     walker elephant xdg-terminal-exec \
     elephant-desktopapplications elephant-clipboard elephant-symbols \
-    elephant-calc elephant-menus elephant-files
+    elephant-calc elephant-menus elephant-files \
+    quickshell-git
   ok "AUR packages"
 else
   say "Skipping package installation (--no-pkg)"
@@ -141,7 +143,7 @@ cp "$REPO_DIR/bin/"nirarchy-* "$HOME/.local/bin/"
 chmod +x "$HOME/.local/bin/"nirarchy-*
 
 mkdir -p "$HOME/.local/share/nirarchy/default/mako" \
-  "$HOME/.local/share/nirarchy/default/walker/themes/omarchy-default" \
+  "$HOME/.local/share/nirarchy/default/walker/themes/nirarchy-default" \
   "$HOME/.local/share/nirarchy/default/swayosd" \
   "$HOME/.local/share/nirarchy/etc/NetworkManager/conf.d" \
   "$HOME/.local/share/nirarchy/themes" \
@@ -152,15 +154,17 @@ mkdir -p "$HOME/.local/share/nirarchy/default/mako" \
 cp "$REPO_DIR/data/default/mako/core.ini" "$HOME/.local/share/nirarchy/default/mako/"
 cp "$REPO_DIR/data/default/walker/layout.xml" "$REPO_DIR/data/default/walker/style.css" \
   "$HOME/.local/share/nirarchy/default/walker/"
-cp "$REPO_DIR/data/default/walker/themes/omarchy-default/"* \
-  "$HOME/.local/share/nirarchy/default/walker/themes/omarchy-default/"
+cp "$REPO_DIR/data/default/walker/themes/nirarchy-default/"* \
+  "$HOME/.local/share/nirarchy/default/walker/themes/nirarchy-default/"
 cp "$REPO_DIR/data/default/swayosd/config.toml" "$HOME/.local/share/nirarchy/default/swayosd/"
 cp "$REPO_DIR/data/etc/NetworkManager/conf.d/wifi-backend.conf" \
   "$HOME/.local/share/nirarchy/etc/NetworkManager/conf.d/"
-cp "$REPO_DIR/data/fonts/omarchy.ttf" "$HOME/.local/share/fonts/"
+cp "$REPO_DIR/data/fonts/nirarchy.ttf" "$HOME/.local/share/fonts/"
+cp "$REPO_DIR/data/fonts/Doto-ExtraBold.ttf" "$HOME/.local/share/fonts/"
+cp "$REPO_DIR/data/nirarchy-menu-icon.png" "$HOME/.local/share/nirarchy/"
 
-# Themes (colors, previews, wallpapers)
-cp -r "$REPO_DIR/data/themes/." "$HOME/.local/share/nirarchy/themes/"
+# SDDM theme
+cp -r "$REPO_DIR/data/default/sddm/nirarchy" "$HOME/.local/share/nirarchy/default/sddm/"
 ok "scripts and data"
 
 # opencode skills (only if opencode config exists or user opts in by presence of dir)
@@ -194,6 +198,36 @@ if ! $NO_SERVICES; then
     sudo systemctl restart NetworkManager
   fi
   ok "system services"
+
+  say "Generating SDDM theme variants"
+  "$HOME/.local/bin/nirarchy-sddm-gen" 2>/dev/null || true
+  ok "SDDM theme variants"
+
+  say "Deploying SDDM theme"
+  sudo mkdir -p /usr/share/sddm/themes/nirarchy
+  # Deploy default (first-run) SDDM theme from generated variants
+  SDDM_VARIANTS="$HOME/.local/share/nirarchy/sddm-themes"
+  if [[ -d $SDDM_VARIANTS ]]; then
+    FIRST_THEME=$(ls "$SDDM_VARIANTS" 2>/dev/null | head -1)
+    if [[ -n $FIRST_THEME ]]; then
+      sudo cp "$SDDM_VARIANTS/$FIRST_THEME/"* /usr/share/sddm/themes/nirarchy/
+    fi
+  else
+    sudo cp "$HOME/.local/share/nirarchy/default/sddm/nirarchy/"* /usr/share/sddm/themes/nirarchy/
+  fi
+  sudo mkdir -p /etc/sddm.conf.d
+  sudo tee /etc/sddm.conf.d/nirarchy.conf >/dev/null <<'SDDMEOF'
+[General]
+DisplayServer=wayland
+
+[Wayland]
+CompositorCommand=niri-session
+
+[Theme]
+Current=nirarchy
+SDDMEOF
+  sudo systemctl enable --now sddm.service 2>/dev/null || true
+  ok "SDDM theme + service"
 
   say "Enabling user services"
   systemctl --user daemon-reload
@@ -233,8 +267,6 @@ ok "PATH"
 say "Applying default theme (tokyo-night)"
 "$HOME/.local/bin/nirarchy-theme-set" tokyo-night || true
 ok "theme applied"
-
-rm -f "$HOME/.cache/nirarchy/firstrun"
 
 cat <<'EOF'
 

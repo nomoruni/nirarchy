@@ -24,7 +24,9 @@ rm -rf "$HOME/.config/quickshell/niri" \
   "$HOME/.config/opencode/skills/diagnose-crash" \
   "$HOME/.local/bin/nirarchy-"* \
   "$HOME/.local/share/nirarchy" \
-  "$HOME/.local/share/fonts/omarchy.ttf" \
+  "$HOME/.local/share/fonts/nirarchy.ttf" \
+  "$HOME/.local/share/fonts/Doto-ExtraBold.ttf" \
+  "$HOME/.local/share/nirarchy/nirarchy-menu-icon.png" \
   "$HOME/.cache/nirarchy" \
   "$HOME/.local/state/nirarchy" \
   "$HOME/.config/niri/config.kdl" \
@@ -38,6 +40,10 @@ rm -rf "$HOME/.config/quickshell/niri" \
   "$HOME/.config/mako/config" \
   "$HOME/.local/share/applications/io.github.nirimod.desktop" \
   "$HOME/.local/bin/nirimod"
+
+say "Removing SDDM theme (requires sudo)"
+sudo rm -rf /usr/share/sddm/themes/nirarchy
+sudo rm -f /etc/sddm.conf.d/nirarchy.conf
 
 say "Nirarchy removed."
 echo "Note: system packages (niri, quickshell, walker, ...) were left installed."

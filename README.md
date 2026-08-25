@@ -18,6 +18,7 @@ as its only AI agent.
 | Area | Details |
 |---|---|
 | **Compositor** | niri with Omarchy's signature cyan→green 45° gradient border, 5px gaps, `prefer-no-csd` |
+| **Display manager** | SDDM with Omarchy's login theme (logo, password entry styling) |
 | **Top bar** | Quickshell: workspace dots (filled = active), clock + calendar popup, weather, update/recording/idle/silence indicators, tray, wifi/bluetooth/volume/CPU/battery |
 | **Managers** | In-bar WiFi and Bluetooth popup panels (nmcli/bluetoothctl), wiremix audio TUI |
 | **Menus** | Walker + Elephant: app launcher, Nirarchy menu (Apps/Learn/Trigger/Style/Setup/Install/Remove/Update/System) |
@@ -32,7 +33,7 @@ as its only AI agent.
 ## Requirements
 
 - Arch Linux (or Arch-based)
-- Any display manager that lists Wayland sessions (niri ships one)
+- [SDDM](https://github.com/sddm/sddm) display manager (installed automatically, with an Omarchy-style theme)
 - `opencode` installed and configured if you want the AI features (optional)
 
 ## Install

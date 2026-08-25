@@ -18,7 +18,7 @@ fi
 theme_dir="$THEMES_DIR/$name"
 [[ -d $theme_dir ]] || { echo "Theme not found: $name" >&2; exit 1; }
 
-mkdir -p "$CFG/nirarchy/current" "$CFG/walker/themes/omarchy-default" "$CFG/mako" "$CFG/hypr"
+mkdir -p "$CFG/nirarchy/current" "$CFG/walker/themes/nirarchy-default" "$CFG/mako" "$CFG/hypr"
 
 ln -sfn "$theme_dir" "$CFG/nirarchy/current/theme"
 
@@ -38,7 +38,7 @@ to_rgb() {
 }
 
 # Walker theme (colors + Omarchy layout/style)
-cp "$DATA/default/walker/layout.xml" "$CFG/walker/themes/omarchy-default/layout.xml"
+cp "$DATA/default/walker/layout.xml" "$CFG/walker/themes/nirarchy-default/layout.xml"
 {
   cat <<EOF
 @define-color selected-text ${accent};
@@ -49,7 +49,7 @@ cp "$DATA/default/walker/layout.xml" "$CFG/walker/themes/omarchy-default/layout.
 @define-color background ${bg};
 EOF
   grep -v '^@import' "$DATA/default/walker/style.css"
-} > "$CFG/walker/themes/omarchy-default/style.css"
+} > "$CFG/walker/themes/nirarchy-default/style.css"
 
 # Mako notification theming
 {
@@ -124,6 +124,13 @@ block = (
 new = re.sub(r"// NIRARCHY-THEME:BEGIN.*?// NIRARCHY-THEME:END", block.replace("\\", "\\\\"), s, flags=re.S)
 open(path, "w").write(new)
 PYEOF
+
+# SDDM theme (copy variant to live theme dir — polkit will ask for auth)
+SDDM_THEMES_DIR="$DATA/sddm-themes"
+SDDM_LIVE="/usr/share/sddm/themes/nirarchy"
+if [[ -d $SDDM_THEMES_DIR/$name ]]; then
+  pkexec /usr/bin/cp -f "$SDDM_THEMES_DIR/$name/"* "$SDDM_LIVE/" 2>/dev/null || true
+fi
 
 # Restart walker (CSS) and swayosd-server (GTK CSS loads at startup)
 pkill -f "walker --gapplication-service" 2>/dev/null || true

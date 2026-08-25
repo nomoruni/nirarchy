@@ -3,6 +3,10 @@
 
 prefer-no-csd
 
+hotkey-overlay {
+    skip-at-startup
+}
+
 environment {
     XDG_CURRENT_DESKTOP "niri"
     XDG_SESSION_DESKTOP "niri"
@@ -57,8 +61,8 @@ layout {
     border {
         on
         width 2
-        active-gradient from="#7daea3" to="#89b482" angle=45
-        inactive-color "#3c3836aa"
+        active-gradient from="#7e9cd8" to="#6a9589" angle=45
+        inactive-color "#727169aa"
     }
 // NIRARCHY-THEME:END
 
@@ -82,10 +86,8 @@ spawn-at-startup "systemctl" "--user" "start" "nirarchy-bar.service"
 spawn-at-startup "mako"
 spawn-at-startup "hypridle"
 spawn-at-startup "swayosd-server"
-spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
 spawn-at-startup "sh" "-c" "swaybg -i $HOME/.config/nirarchy/current/background -m fill"
 spawn-at-startup "wl-paste" "--watch" "cliphist" "store"
-spawn-at-startup "nirarchy-first-run"
 
 window-rule {
     match app-id=r"^(pavucontrol|blueman-manager|nm-connection-editor|org.gnome.Calculator|satty|com.github.hlissner.*)$"

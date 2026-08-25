@@ -1,0 +1,8 @@
+[SddmGreeterTheme]
+Name=Nirarchy (Tokyo Night)
+Description=Nirarchy SDDM theme for Tokyo Night
+Author=Nirarchy
+Type=sddm-theme
+Version=1.0
+QtVersion=6
+ThemeEntry=theme.conf
