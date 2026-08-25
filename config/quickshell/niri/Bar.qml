@@ -244,7 +244,7 @@ PanelWindow {
                     dangerColor: isUrgent
                     tip: "Workspace " + num + (isUrgent ? " (urgent)" : "")
                     label: ""
-                    onClickAction: () => niriState.focus(modelData)
+                    onClickAction: () => niriState.focusWs(modelData)
                     onScrollUpAction: () => niriState.cycleWorkspace(1)
                     onScrollDownAction: () => niriState.cycleWorkspace(-1)
                 }
@@ -268,19 +268,34 @@ PanelWindow {
             }
 
             BarButton {
+                glyph: "󰑋"
+                tip: Indicators.recording ? "Recording — click to stop" : "Record screen\n\nRight-click for options"
+                dangerColor: Indicators.recording
+                accentColor: !Indicators.recording
+                onClickAction: () => Actions.detached(Indicators.recording ? "nirarchy-capture-screenrecording --stop-recording" : "nirarchy-capture-screenrecording")
+                onRightClickAction: () => Actions.detached("nirarchy-menu screenrecord")
+            }
+
+            BarButton {
+                glyph: "󰔛"
+                tip: "Reminders\n\nRight-click to show all"
+                onClickAction: () => Actions.detached("nirarchy-menu reminder")
+                onRightClickAction: () => Actions.detached("nirarchy-reminder show")
+            }
+
+            BarButton {
+                glyph: "󰄀"
+                tip: "Screenshot\n\nRight-click for capture menu"
+                onClickAction: () => Actions.detached("nirarchy-capture-screenshot")
+                onRightClickAction: () => Actions.detached("nirarchy-menu capture")
+            }
+
+            BarButton {
                 visible: Indicators.updates > 0
                 glyph: "󰚰"
                 tip: Indicators.updates + " updates available"
                 accentColor: true
                 onClickAction: () => Actions.detached("nirarchy-launch-floating-terminal-with-presentation 'echo Updating system… && yay'")
-            }
-
-            BarButton {
-                visible: Indicators.recording
-                glyph: "󰑋"
-                tip: "Screen recording active\n\nClick to stop"
-                dangerColor: true
-                onClickAction: () => Actions.detached("nirarchy-capture-screenrecording --stop-recording")
             }
 
             BarButton {

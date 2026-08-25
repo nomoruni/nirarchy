@@ -10,7 +10,7 @@ Item {
     property int activeIdx: -1
     property bool urgent: false
 
-    function focus(ws) {
+    function focusWs(ws) {
         if (ws === null || ws === undefined)
             return;
         const arg = ws.name ?? String(ws.num ?? (ws.idx + 1));

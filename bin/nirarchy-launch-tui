@@ -1,4 +1,4 @@
 #!/bin/bash
-# nirarchy-launch-tui: Launch a TUI command in the terminal with Nirarchy styling
+# nirarchy-launch-tui: Launch a TUI in the terminal with Nirarchy styling
 
-setsid foot --app-id="org.nirarchy.$(basename "$1")" -e "$1" "${@:2}" >/dev/null 2>&1 &
+exec setsid foot --app-id="org.nirarchy.$(basename "$1")" --title="org.nirarchy.$(basename "$1")" -e "$1" "${@:2}" >/dev/null 2>&1 &

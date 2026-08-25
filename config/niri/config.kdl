@@ -92,8 +92,10 @@ window-rule {
     open-floating true
 }
 
+
+
 window-rule {
-    match title=r"(Picture-in-Picture|pipewire)"
+    match title=r#"(Picture-in-Picture|pipewire)"#
     open-floating true
 }
 

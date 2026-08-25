@@ -34,7 +34,7 @@ Singleton {
     }
 
     readonly property Process recProc: Process {
-        command: ["sh", "-c", "pgrep -f gpu-screen-recorder >/dev/null && echo on || echo off"]
+        command: ["sh", "-c", "pgrep -f '^gpu-screen-recorder' >/dev/null && echo on || echo off"]
         stdout: StdioCollector {
             onStreamFinished: root.recording = text.trim() === "on"
         }
