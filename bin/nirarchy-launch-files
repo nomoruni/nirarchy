@@ -1,7 +1,7 @@
 #!/bin/bash
 # nirarchy-launch-files: Open the available file manager
 
-for fm in nautilus dolphin thunar nemo; do
+for fm in pcmanfm nautilus dolphin thunar nemo; do
   if command -v "$fm" >/dev/null 2>&1; then
     setsid "$fm" >/dev/null 2>&1 &
     exit 0

@@ -83,7 +83,7 @@ PanelWindow {
         height: 316
         radius: 0
         color: Theme.bg
-        border.color: Qt.alpha(Theme.accent, 0.55)
+        border.color: Theme.accent
         border.width: 1
         opacity: calRoot.visible ? 1 : 0
         scale: calRoot.visible ? 1 : 0.96
@@ -229,7 +229,7 @@ PanelWindow {
                             font.family: Theme.fontFamily
                             font.pixelSize: 12
                             font.bold: dayCell.modelData.today
-                            color: dayCell.modelData.today ? Theme.bg : dayCell.modelData.inMonth ? Theme.fg : Qt.alpha(Theme.dim, 0.55)
+                            color: dayCell.modelData.today ? Theme.bg : dayCell.modelData.inMonth ? Theme.fg : Theme.dim
                         }
                     }
                 }

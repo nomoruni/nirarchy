@@ -1,15 +1,15 @@
 #!/bin/bash
-# nirarchy-pkg-aur-install: fzf picker to install AUR packages via yay
+# nirarchy-pkg-aur-install: fzf picker to install AUR packages via paru
 
 fzf_args=(
   --multi
-  --preview 'yay -Saa {1}'
+  --preview 'paru -Saa {1}'
   --preview-window 'down:65%:wrap'
 )
 
-pkg_names=$(yay -Slqa | sort -u | fzf "${fzf_args[@]}")
+pkg_names=$(paru -Slqa | sort -u | fzf "${fzf_args[@]}")
 
 if [[ -n $pkg_names ]]; then
-  echo "$pkg_names" | tr '\n' ' ' | xargs yay -S --needed --noconfirm
+  echo "$pkg_names" | tr '\n' ' ' | xargs paru -S --needed --noconfirm
   nirarchy-show-done
 fi

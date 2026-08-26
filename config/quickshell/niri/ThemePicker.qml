@@ -74,7 +74,7 @@ PanelWindow {
         id: scrim
 
         anchors.fill: parent
-        color: Qt.rgba(0, 0, 0, 0.55)
+        color: Qt.rgba(0, 0, 0, 1)
         opacity: pickerRoot.open ? 1 : 0
         Behavior on opacity {
             NumberAnimation {

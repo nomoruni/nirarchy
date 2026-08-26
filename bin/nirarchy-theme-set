@@ -125,12 +125,28 @@ new = re.sub(r"// NIRARCHY-THEME:BEGIN.*?// NIRARCHY-THEME:END", block.replace("
 open(path, "w").write(new)
 PYEOF
 
-# SDDM theme (copy variant to live theme dir — polkit will ask for auth)
+# SDDM theme + Papirus folder color (single pkexec for one password prompt)
 SDDM_THEMES_DIR="$DATA/sddm-themes"
 SDDM_LIVE="/usr/share/sddm/themes/nirarchy"
-if [[ -d $SDDM_THEMES_DIR/$name ]]; then
-  pkexec /usr/bin/cp -f "$SDDM_THEMES_DIR/$name/"* "$SDDM_LIVE/" 2>/dev/null || true
+declare -A FOLDER_COLORS=(
+  [catppuccin]="blue"
+  [everforest]="green"
+  [gruvbox]="orange"
+  [kanagawa]="red"
+  [nord]="nordic"
+  [osaka-jade]="green"
+  [rose-pine]="pink"
+  [tokyo-night]="blue"
+)
+FOLDER_COLOR="${FOLDER_COLORS[$name]:-blue}"
+
+ROOT_SCRIPT=""
+if [[ -d "$SDDM_THEMES_DIR/$name" ]]; then
+  ROOT_SCRIPT+="cp -f $SDDM_THEMES_DIR/$name/* $SDDM_LIVE/ 2>/dev/null; "
 fi
+ROOT_SCRIPT+="papirus-folders -t Papirus -C $FOLDER_COLOR -u 2>/dev/null; true"
+
+pkexec /bin/bash -c "$ROOT_SCRIPT"
 
 # Restart walker (CSS) and swayosd-server (GTK CSS loads at startup)
 pkill -f "walker --gapplication-service" 2>/dev/null || true

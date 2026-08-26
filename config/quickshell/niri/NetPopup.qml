@@ -127,7 +127,7 @@ PopupWindow {
         anchors.fill: parent
         radius: 0
         color: Theme.bg
-        border.color: Qt.alpha(Theme.accent, 0.55)
+        border.color: Theme.accent
         border.width: 1
 
         Column {
@@ -268,7 +268,7 @@ PopupWindow {
                     width: 86
                     height: 24
                     radius: 0
-                    color: discMouse.containsMouse ? Theme.red : Qt.alpha(Theme.red, 0.25)
+                    color: discMouse.containsMouse ? Theme.red : Theme.bgLight
 
                     Text {
                         anchors.centerIn: parent

@@ -1,89 +1,130 @@
 #!/bin/bash
 # nirarchy-menu-keybindings: Show the keybinding cheat sheet in Walker
 
-cat <<EOF | walker --dmenu -p 'Keybindings' --width 800 --minheight 1 --maxheight 630 2>/dev/null
-SUPER + Return                      → Terminal (foot)
-SUPER + Ctrl + Return               → opencode AI agent
-SUPER + Shift + A                   → opencode AI agent
-SUPER + Ctrl + X                    → opencode AI agent
-SUPER + W                           → Browser (Firefox)
-SUPER + Shift + B                   → Browser (Firefox)
-SUPER + E                           → File manager
-SUPER + Shift + N                   → Editor (Helix)
-SUPER + Space                       → App launcher (Walker)
-SUPER + Alt + Space                 → Nirarchy menu
-SUPER + Escape                      → System menu (lock/suspend/logout)
-SUPER + Shift + K                   → This keybinding list
-SUPER + V                           → Clipboard history
-SUPER + Ctrl + E                    → Emoji / symbol picker
-SUPER + Ctrl + C                    → Capture menu
-SUPER + Ctrl + O                    → Toggle menu
-SUPER + Ctrl + R                    → Set reminder
-
-SUPER + Q                           → Close window
-SUPER + F                           → Maximize column
-SUPER + Shift + F                    → Fullscreen window
-SUPER + T                           → Toggle floating / tiling
-SUPER + J                           → Maximize column
-SUPER + O                           → Switch preset column width
-SUPER + BracketLeft                 → Consume window left
-SUPER + BracketRight                → Consume window right
-Ctrl + Alt + Delete                 → Close all windows
-
-SUPER + Arrows / H L                 → Focus window or column
-SUPER + Up / Down                    → Focus window up/down
-Alt + Tab                           → Cycle windows down
-Alt + Shift + Tab                   → Cycle windows up
-SUPER + Shift + Arrows              → Move window/column
-
-SUPER + 1…0                         → Switch workspace
-SUPER + Shift + 1…0                 → Move window to workspace
-SUPER + Tab                         → Next workspace
-SUPER + Shift + Tab                 → Previous workspace
-SUPER + Ctrl + Tab                  → Previous workspace (alt)
-SUPER + S                           → Toggle scratchpad workspace
-SUPER + Alt + S                     → Move window to scratchpad
-SUPER + Wheel                       → Scroll workspaces
-
-SUPER + Minus / Equal               → Shrink / expand column width
-SUPER + Shift + Minus / Equal        → Shrink / expand window height
-
-SUPER + Shift + Alt + Arrows        → Move workspace to monitor
-Ctrl + Alt + Tab                    → Focus next monitor
-Ctrl + Alt + Shift + Tab            → Focus previous monitor
-
-PRINT                               → Screenshot (smart region)
-ALT + PRINT                         → Screenrecord menu
-SUPER + PRINT                       → Color picker
-SUPER + Ctrl + PRINT                → Extract text (OCR)
-
-SUPER + Comma                       → Dismiss notification
-SUPER + Shift + Comma               → Dismiss all notifications
-SUPER + Alt + Comma                 → Invoke notification
-SUPER + Ctrl + Comma                → Silence notifications
-
-SUPER + Ctrl + I                    → Toggle idle lock
-SUPER + Ctrl + N                    → Toggle nightlight
-SUPER + Shift + Space               → Toggle top bar
-SUPER + Ctrl + Space                → Background picker
-SUPER + Shift + Ctrl + Space        → Theme picker
-
-SUPER + Ctrl + A                    → Audio controls (wiremix)
-SUPER + Ctrl + B                    → Bluetooth controls (bluetui)
-SUPER + Ctrl + W                    → Wifi controls (impala)
-SUPER + Ctrl + T                    → Activity monitor (btop)
-SUPER + Ctrl + L                    → Lock system
-SUPER + Ctrl + Alt + R              → Show reminders
-SUPER + Ctrl + Alt + T              → Show date/time popup
-SUPER + Ctrl + Alt + B              → Show battery status
-XF86PowerOff                        → System menu
-
-XF86AudioRaise/Lower                → Volume (SwayOSD)
-XF86AudioMute                       → Mute (SwayOSD)
-XF86AudioMicMute                    → Mute microphone
-XF86AudioNext / Prev                → Media next / previous
-XF86AudioPlay / Pause               → Media play / pause
-XF86MonBrightness Up/Down           → Brightness (SwayOSD)
-Alt + XF86MonBrightness             → Fine brightness (1%)
-XF86Calculator                      → Calculator
+cat <<'EOF' | walker --dmenu -p 'Keybindings' --width 800 --minheight 1 --maxheight 2000 2>/dev/null
+SUPER + Return → Terminal (foot)
+SUPER + Ctrl + Return → opencode AI agent
+SUPER + Shift + A → opencode AI agent
+SUPER + Ctrl + X → opencode AI agent
+SUPER + W → Browser (Firefox)
+SUPER + Shift + B → Browser (Firefox)
+SUPER + E → File manager
+SUPER + Shift + N → Editor (Helix)
+SUPER + Space → App launcher (Walker)
+SUPER + Alt + Space → Nirarchy menu
+SUPER + Escape → System menu
+SUPER + Shift + K → This keybinding list
+SUPER + V → Clipboard history
+SUPER + Ctrl + E → Emoji / symbol picker
+SUPER + Ctrl + C → Capture menu
+SUPER + Ctrl + O → Toggle menu
+SUPER + Ctrl + R → Set reminder
+SUPER + Q → Close window
+SUPER + F → Maximize column
+SUPER + Shift + F → Fullscreen window
+SUPER + T → Toggle floating / tiling
+SUPER + J → Maximize column
+SUPER + O → Switch preset column width
+SUPER + BracketLeft → Consume window left
+SUPER + BracketRight → Consume window right
+SUPER + Shift + BracketLeft → Expel window left
+SUPER + Shift + BracketRight → Expel window right
+SUPER + Ctrl + P → Reset column tabbing display
+SUPER + P → Toggle column tabbing display
+SUPER + M → Set column width to 1/3
+SUPER + Shift + M → Set column width to 2/3
+SUPER + Alt + M → Set column width to full
+SUPER + Ctrl + T → Set window width to 1/3
+SUPER + Shift + Ctrl + T → Set window width to 2/3
+SUPER + Alt + T → Set window width to full
+SUPER + Ctrl + F → Set window height to 1/3
+SUPER + Shift + Ctrl + F → Set window height to 2/3
+SUPER + Alt + F → Set window height to full
+SUPER + G → Center column
+SUPER + Shift + G → Center column (reference)
+SUPER + Ctrl + G → Center column height
+SUPER + Shift + Ctrl + G → Center column height (reference)
+SUPER + Alt + G → Center window
+SUPER + Shift + Alt + G → Center window (reference)
+SUPER + Ctrl + Alt + G → Center window height
+SUPER + Shift + Ctrl + Alt + G → Center window height (reference)
+SUPER + Enter → Focus column down
+SUPER + Shift + Enter → Focus column up
+SUPER + Ctrl + Delete → Close all windows
+SUPER + Left / H → Focus column left
+SUPER + Right / L → Focus column right
+SUPER + Up → Focus window up
+SUPER + Down → Focus window down
+Alt + Tab → Cycle windows down
+Alt + Shift + Tab → Cycle windows up
+SUPER + Shift + Left / H → Move column left
+SUPER + Shift + Right / L → Move column right
+SUPER + Shift + Up → Move window up
+SUPER + Shift + Down → Move window down
+SUPER + Ctrl + Left → Consume left
+SUPER + Ctrl + Right → Consume right
+SUPER + Ctrl + Up → Consume up
+SUPER + Ctrl + Down → Consume down
+SUPER + Shift + Ctrl + Left → Expel left
+SUPER + Shift + Ctrl + Right → Expel right
+SUPER + Shift + Ctrl + Up → Expel up
+SUPER + Shift + Ctrl + Down → Expel down
+SUPER + Minus → Shrink column width
+SUPER + Equal → Expand column width
+SUPER + Shift + Minus → Shrink window height
+SUPER + Shift + Equal → Expand window height
+SUPER + Tab → Focus workspace down
+SUPER + Shift + Tab → Focus workspace up
+SUPER + Ctrl + Tab → Focus previous workspace
+SUPER + WheelScrollDown → Workspace down
+SUPER + WheelScrollUp → Workspace up
+SUPER + 1…0 → Focus workspace 1-10
+SUPER + Shift + 1…0 → Move window to workspace 1-10
+SUPER + Alt + Left / H → Focus output left
+SUPER + Alt + Right / L → Focus output right
+SUPER + Alt + Up → Focus output up
+SUPER + Alt + Down → Focus output down
+SUPER + Shift + Alt + Left / H → Move workspace to output left
+SUPER + Shift + Alt + Right / L → Move workspace to output right
+SUPER + Shift + Alt + Up → Move workspace to output up
+SUPER + Shift + Alt + Down → Move workspace to output down
+Ctrl + Alt + Tab → Focus next monitor
+Ctrl + Alt + Shift + Tab → Focus previous monitor
+SUPER + S → Toggle scratchpad workspace
+SUPER + Alt + S → Move window to scratchpad
+Print → Screenshot
+Alt + Print → Screenrecord menu
+SUPER + Print → Color picker
+SUPER + Ctrl + Print → Extract text (OCR)
+SUPER + Comma → Dismiss notification
+SUPER + Shift + Comma → Dismiss all notifications
+SUPER + Alt + Comma → Invoke notification
+SUPER + Ctrl + Comma → Silence notifications
+SUPER + Ctrl + I → Toggle idle lock
+SUPER + Ctrl + N → Toggle nightlight
+SUPER + Shift + Space → Toggle top bar
+SUPER + Ctrl + Space → Background picker
+SUPER + Shift + Ctrl + Space → Theme picker
+SUPER + Ctrl + A → Audio controls
+SUPER + Ctrl + B → Bluetooth controls
+SUPER + Ctrl + W → WiFi controls
+SUPER + Ctrl + T → Activity monitor (btop)
+SUPER + Ctrl + L → Lock system
+SUPER + Ctrl + Alt + R → Show reminders
+SUPER + Ctrl + Alt + T → Date/time popup
+SUPER + Ctrl + Alt + B → Battery status
+SUPER + Shift + Slash → Show hotkey overlay
+XF86AudioRaise → Volume up
+XF86AudioLower → Volume down
+XF86AudioMute → Mute audio
+XF86AudioMicMute → Mute microphone
+XF86AudioNext → Media next
+XF86AudioPrev → Media previous
+XF86AudioPlay → Media play/pause
+XF86MonBrightnessUp → Brightness up
+XF86MonBrightnessDown → Brightness down
+Alt + XF86MonBrightnessUp → Brightness up (fine)
+Alt + XF86MonBrightnessDown → Brightness down (fine)
+XF86Calculator → Calculator
+XF86PowerOff → System menu
 EOF

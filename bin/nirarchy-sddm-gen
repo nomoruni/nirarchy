@@ -16,8 +16,9 @@ OUT_DIR = DATA / "sddm-themes"
 ASSETS_DIR = DATA / "default" / "sddm" / "nirarchy"
 
 FONT_CANDIDATES = [
+    str(Path.home() / ".local/share/fonts/Doto-ExtraBold.ttf"),
+    str(Path.home() / "Projects/nirarchy/data/fonts/Doto-ExtraBold.ttf"),
     "/usr/share/fonts/TTF/Doto-ExtraBold.ttf",
-    str(Path.home() / ".local/share/fonts/static/Montserrat-SemiBold.ttf"),
 ]
 FONT = next((f for f in FONT_CANDIDATES if os.path.exists(f)), None)
 
@@ -96,7 +97,8 @@ Rectangle {{
           font.family: "JetBrainsMono Nerd Font"; font.pixelSize: 24; font.letterSpacing: 5
           passwordCharacter: "\\u2022"
           color: "transparent"; selectionColor: "transparent"; selectedTextColor: "transparent"
-          cursorDelegate: Item {{}}; focus: true
+          cursorDelegate: Item {{}}
+          focus: true
           onTextChanged: root.loginFailed = false
           Keys.onPressed: {{
             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)

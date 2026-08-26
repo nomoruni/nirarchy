@@ -4,7 +4,7 @@
 prefer-no-csd
 
 hotkey-overlay {
-    skip-at-startup
+    off
 }
 
 environment {
@@ -18,6 +18,11 @@ input {
         repeat-delay 400
         repeat-rate 40
         track-layout "global"
+        xkb {
+            layout "us"
+            variant "intl"
+            options "kpdl:numlock"
+        }
     }
 
     touchpad {
@@ -61,8 +66,8 @@ layout {
     border {
         on
         width 2
-        active-gradient from="#7e9cd8" to="#6a9589" angle=45
-        inactive-color "#727169aa"
+        active-gradient from="#7daea3" to="#89b482" angle=45
+        inactive-color "#3c3836aa"
     }
 // NIRARCHY-THEME:END
 
@@ -97,7 +102,15 @@ window-rule {
 
 
 window-rule {
-    match app-id=r#"^org\.nirarchy\.(btop|wiremix|impala|bluetui)$"#
+    match app-id=r#"^org\.nirarchy\.btop$"#
+    open-floating true
+    default-floating-position x=200 y=100
+    default-column-width { fixed 1200; }
+    default-window-height { fixed 800; }
+}
+
+window-rule {
+    match app-id=r#"^org\.nirarchy\.(wiremix|impala|bluetui)$"#
     open-floating true
 }
 

@@ -21,7 +21,7 @@ LOG_FILE="/tmp/nirarchy-debug.log"
 BRANCH="niri"
 cat >"$LOG_FILE" <<EOF
 Date: $(date)
-Hostname: $(hostname)
+Hostname: $(uname -n)
 Desktop: Nirarchy (niri + quickshell)
 
 =========================================
@@ -63,7 +63,7 @@ fi
 
 if $TO_OPENCODE; then
   setsid foot --app-id=org.nirarchy.opencode -e bash -c \
-    'opencode "This is the nirarchy-debug system report. Analyze it for problems, errors and crash patterns, then propose fixes. Report: $(cat /tmp/nirarchy-debug.log)"' \
+    "opencode \"This is the nirarchy-debug system report. Analyze it for problems, errors and crash patterns, then propose fixes. Report: \$(cat /tmp/nirarchy-debug.log)\"" \
     >/dev/null 2>&1 &
   exit 0
 fi

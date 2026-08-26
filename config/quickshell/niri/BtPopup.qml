@@ -134,7 +134,7 @@ PopupWindow {
         anchors.fill: parent
         radius: 0
         color: Theme.bg
-        border.color: Qt.alpha(Theme.accent, 0.55)
+        border.color: Theme.accent
         border.width: 1
 
         Column {
@@ -305,7 +305,7 @@ PopupWindow {
                             Rectangle {
                                 anchors.fill: parent
                                 radius: 0
-                                color: devAct.containsMouse ? Theme.accent : Qt.alpha(Theme.accent, 0.3)
+                                color: devAct.containsMouse ? Theme.accent : Theme.bgLight
 
                                 Text {
                                     anchors.centerIn: parent

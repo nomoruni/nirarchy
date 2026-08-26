@@ -48,6 +48,18 @@ fi
 ok "Arch Linux"
 
 # ----------------------------------------------------------------------------
+say "Keyboard layout"
+echo "  Available US variants:"
+echo "    us        - English (US)"
+echo "    us-intl   - English (US, intl., with dead keys)"
+echo "    us-alt-intl - English (US, alt. intl.)"
+echo ""
+echo "  Type your layout variant (default: us-intl):"
+read -r KBD_VARIANT
+KBD_VARIANT=${KBD_VARIANT:-us-intl}
+ok "Keyboard variant: $KBD_VARIANT"
+
+# ----------------------------------------------------------------------------
 if ! $NO_PKG; then
   say "Installing repo packages (pacman)"
   sudo pacman -S --needed --noconfirm \
@@ -58,23 +70,24 @@ if ! $NO_PKG; then
     polkit-gnome tlp tlp-pd \
     foot ttf-jetbrains-mono-nerd ttf-liberation noto-fonts noto-fonts-emoji \
     hyprpicker impala bluetui btop eza fzf ripgrep fd bat zoxide starship fastfetch gum jq \
-    xdg-desktop-portal-gtk xdg-desktop-portal-gnome \
+    xdg-desktop-portal-gtk xdg-desktop-portal-wlr \
     gpu-screen-recorder gammastep wiremix \
     tesseract tesseract-data-eng \
     networkmanager iwd bluez bluez-utils libqalculate \
     sddm qt6-declarative qt6-svg \
+    papirus-icon-theme \
     xwayland-satellite inxi expac python-pillow
   ok "repo packages"
 
-  say "Installing AUR packages (yay)"
-  if ! command -v yay >/dev/null 2>&1; then
-    say "yay not found — building it from source"
-    sudo pacman -S --needed --noconfirm git base-devel go
-    git clone https://aur.archlinux.org/yay.git /tmp/yay-build
-    (cd /tmp/yay-build && makepkg -si --noconfirm)
-    rm -rf /tmp/yay-build
+  say "Installing AUR packages (paru)"
+  if ! command -v paru >/dev/null 2>&1; then
+    say "paru not found — building it from source"
+    sudo pacman -S --needed --noconfirm git base-devel
+    git clone https://aur.archlinux.org/paru.git /tmp/paru-build
+    (cd /tmp/paru-build && makepkg -si --noconfirm)
+    rm -rf /tmp/paru-build
   fi
-  yay -S --needed --noconfirm \
+  paru -S --needed --noconfirm \
     walker elephant xdg-terminal-exec \
     elephant-desktopapplications elephant-clipboard elephant-symbols \
     elephant-calc elephant-menus elephant-files \
@@ -100,6 +113,18 @@ backup "$HOME/.config/niri"
 mkdir -p "$HOME/.config/niri"
 cp "$REPO_DIR/config/niri/config.kdl" "$HOME/.config/niri/config.kdl"
 
+# Apply selected keyboard variant to niri config
+# User input: "us-intl", "us", "dvorak", etc.
+# Config has: layout "us" and variant "intl"
+if [[ "$KBD_VARIANT" == "us" ]]; then
+  # Plain US layout — remove variant line
+  sed -i '/variant "intl"/d' "$HOME/.config/niri/config.kdl"
+else
+  # Extract variant part (everything after first dash)
+  VARIANT="${KBD_VARIANT#*-}"
+  sed -i "s|variant \"intl\"|variant \"${VARIANT}\"|" "$HOME/.config/niri/config.kdl"
+fi
+
 # quickshell shell
 backup "$HOME/.config/quickshell/niri"
 mkdir -p "$HOME/.config/quickshell/niri"
@@ -113,6 +138,10 @@ cp "$REPO_DIR/config/hypr/hypridle.conf" "$HOME/.config/hypr/hypridle.conf"
 # foot
 mkdir -p "$HOME/.config/foot"
 cp "$REPO_DIR/config/foot/foot.ini" "$HOME/.config/foot/foot.ini"
+
+# xdg-desktop-portal (uses wlr for screenshots/screen sharing instead of gnome)
+mkdir -p "$HOME/.config/xdg-desktop-portal"
+cp "$REPO_DIR/config/xdg-desktop-portal/niri-portals.conf" "$HOME/.config/xdg-desktop-portal/"
 
 # swayosd
 mkdir -p "$HOME/.config/swayosd"
@@ -266,6 +295,28 @@ ok "PATH"
 # ----------------------------------------------------------------------------
 say "Applying default theme (tokyo-night)"
 "$HOME/.local/bin/nirarchy-theme-set" tokyo-night || true
+
+# Set default icon theme
+mkdir -p "$HOME/.config"
+if [[ -f "$HOME/.config/gtk-3.0/settings.ini" ]]; then
+  sed -i 's/^gtk-icon-theme-name=.*/gtk-icon-theme-name=Papirus/' "$HOME/.config/gtk-3.0/settings.ini"
+else
+  cat >"$HOME/.config/gtk-3.0/settings.ini" <<'EOF'
+[Settings]
+gtk-icon-theme-name=Papirus
+gtk-theme-name=Papirus-Dark
+EOF
+fi
+if [[ -f "$HOME/.config/gtk-4.0/settings.ini" ]]; then
+  sed -i 's/^gtk-icon-theme-name=.*/gtk-icon-theme-name=Papirus/' "$HOME/.config/gtk-4.0/settings.ini"
+else
+  mkdir -p "$HOME/.config/gtk-4.0"
+  cat >"$HOME/.config/gtk-4.0/settings.ini" <<'EOF'
+[Settings]
+gtk-icon-theme-name=Papirus
+gtk-theme-name=Papirus-Dark
+EOF
+fi
 ok "theme applied"
 
 cat <<'EOF'

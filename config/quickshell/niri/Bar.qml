@@ -83,7 +83,7 @@ PanelWindow {
 
         property string glyph: ""
         property int glyphPixel: Theme.fontSize + 2
-        property color glyphTint: Qt.alpha(Theme.fg, 1)
+        property color glyphTint: Theme.fg
         property string imageSource: ""
         property string label: ""
         property string tip: ""
@@ -215,7 +215,7 @@ PanelWindow {
         id: content
 
         anchors.fill: parent
-        color: Qt.alpha(Theme.bg, 0.95)
+        color: Theme.bg
 
         RowLayout {
             id: leftRow
@@ -251,7 +251,7 @@ PanelWindow {
 
                     glyph: active ? "\uf111" : "\uf10c"
                     glyphPixel: active ? Theme.fontSize + 3 : Theme.fontSize - 1
-                    glyphTint: active ? Qt.alpha(Theme.fg, 1) : Qt.alpha(Theme.dim, 0.9)
+                    glyphTint: active ? Theme.fg : Theme.dim
                     accentColor: active
                     dangerColor: isUrgent
                     tip: "Workspace " + num + (isUrgent ? " (urgent)" : "")
@@ -307,7 +307,7 @@ PanelWindow {
                 glyph: "󰚰"
                 tip: Indicators.updates + " updates available"
                 accentColor: true
-                onClickAction: () => Actions.detached("nirarchy-launch-floating-terminal-with-presentation 'echo Updating system… && yay'")
+                onClickAction: () => Actions.detached("nirarchy-launch-floating-terminal-with-presentation 'echo Updating system… && paru'")
             }
 
             BarButton {

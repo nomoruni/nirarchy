@@ -41,6 +41,9 @@ rm -rf "$HOME/.config/quickshell/niri" \
   "$HOME/.local/share/applications/io.github.nirimod.desktop" \
   "$HOME/.local/bin/nirimod"
 
+# Reset Papirus folder color to default
+papirus-folders -t Papirus -D -u 2>/dev/null || true
+
 say "Removing SDDM theme (requires sudo)"
 sudo rm -rf /usr/share/sddm/themes/nirarchy
 sudo rm -f /etc/sddm.conf.d/nirarchy.conf

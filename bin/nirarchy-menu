@@ -202,7 +202,7 @@ show_remove_menu() {
 
 show_update_menu() {
   case $(menu "Update" "󰚰  System") in
-  *System*) present_terminal "echo 'Updating system…'; yay" ;;
+  *System*) present_terminal "echo 'Updating system…'; paru" ;;
   *) show_main_menu ;;
   esac
 }
