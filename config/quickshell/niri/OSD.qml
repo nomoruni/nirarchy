@@ -6,6 +6,8 @@ import Quickshell.Io
 PanelWindow {
     id: root
 
+    visible: false
+
     anchors {
         bottom: true
     }
@@ -15,51 +17,76 @@ PanelWindow {
 
     color: "transparent"
 
-    // Hide after 2 seconds
+    // Hide after 1.5 seconds
     Timer {
         id: hideTimer
-        interval: 2000
+        interval: 1500
         onTriggered: root.visible = false
     }
 
-    // Monitor volume changes
+    // Track previous values to detect changes
+    property int prevVolume: -1
+    property int prevBrightness: -1
+    property bool prevMuted: false
+
+    // Current values
     property int volume: 0
     property bool muted: false
+    property int brightness: 0
+    property bool showBrightness: false
 
+    function showOSD() {
+        root.visible = true;
+        hideTimer.restart();
+    }
+
+    // Volume monitoring
     readonly property Process volProc: Process {
         command: ["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const match = text.match(/Volume: (\d+\.?\d*)/);
                 if (match) {
-                    root.volume = Math.round(parseFloat(match[1]) * 100);
-                    root.visible = true;
-                    hideTimer.restart();
+                    const newVol = Math.round(parseFloat(match[1]) * 100);
+                    const newMuted = text.includes("MUTED");
+                    
+                    // Only show if changed
+                    if (newVol !== root.prevVolume || newMuted !== root.prevMuted) {
+                        root.volume = newVol;
+                        root.muted = newMuted;
+                        root.prevVolume = newVol;
+                        root.prevMuted = newMuted;
+                        root.showBrightness = false;
+                        root.showOSD();
+                    }
                 }
-                root.muted = text.includes("MUTED");
             }
         }
     }
 
-    // Monitor brightness changes
-    property int brightness: 0
-
+    // Brightness monitoring
     readonly property Process brightProc: Process {
         command: ["brightnessctl", "get"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const current = parseInt(text.trim()) || 0;
-                const max = 255; // Typical max brightness
-                root.brightness = Math.round((current / max) * 100);
-                root.visible = true;
-                hideTimer.restart();
+                const max = 7142; // From brightnessctl max
+                const newBright = Math.round((current / max) * 100);
+                
+                // Only show if changed
+                if (newBright !== root.prevBrightness) {
+                    root.brightness = newBright;
+                    root.prevBrightness = newBright;
+                    root.showBrightness = true;
+                    root.showOSD();
+                }
             }
         }
     }
 
-    // Poll for changes
+    // Poll for changes (every 500ms)
     Timer {
-        interval: 1000
+        interval: 500
         running: true
         repeat: true
         onTriggered: {
@@ -86,7 +113,7 @@ PanelWindow {
                 spacing: 10
 
                 Text {
-                    text: root.muted ? "󰝟" : (root.volume < 50 ? "󰕿" : (root.volume < 75 ? "󰖀" : "󰕾"))
+                    text: root.muted ? "󰝟" : (root.volume < 30 ? "󰕿" : (root.volume < 70 ? "󰖀" : "󰕾"))
                     color: "#d4be98"
                     font.pixelSize: 20
                 }

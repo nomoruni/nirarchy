@@ -19,9 +19,9 @@ Singleton {
     function audioGlyph() {
         if (Sys.muted)
             return "󰝟";
-        if (Sys.volume < 50)
+        if (Sys.volume < 30)
             return "󰕿";
-        if (Sys.volume < 75)
+        if (Sys.volume < 70)
             return "󰖀";
         return "󰕾";
     }
