@@ -218,9 +218,9 @@ show_system_menu() {
   *Lock*) nirarchy-system-lock ;;
   *Suspend*) systemctl suspend ;;
   *Logout*) nirarchy-system-logout ;;
+  *Restart*Nirarchy*) nirarchy-restart-bar ;;
   *Restart*) nirarchy-system-reboot ;;
   *Shutdown*) nirarchy-system-shutdown ;;
-  *Restart*Nirarchy*) nirarchy-restart-bar ;;
   *Diagnose*) nirarchy-agent-crash ;;
   *Debug*) nirarchy-debug --opencode ;;
   *) back_to show_main_menu ;;
