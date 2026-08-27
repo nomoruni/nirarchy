@@ -154,7 +154,7 @@ pkill -x walker 2>/dev/null || true
 systemctl --user restart swayosd-server.service 2>/dev/null || { pkill -x swayosd-server 2>/dev/null || true; sleep 0.2; setsid swayosd-server >/dev/null 2>&1 & }
 
 # Update helix theme
-if command -v hx >/dev/null 2>&1; then
+if command -v helix >/dev/null 2>&1 || command -v hx >/dev/null 2>&1; then
   hx_theme="tokyonight"
   case "$name" in
     tokyo-night) hx_theme="tokyonight" ;;
