@@ -153,6 +153,22 @@ pkill -f "walker --gapplication-service" 2>/dev/null || true
 pkill -x walker 2>/dev/null || true
 systemctl --user restart swayosd-server.service 2>/dev/null || { pkill -x swayosd-server 2>/dev/null || true; sleep 0.2; setsid swayosd-server >/dev/null 2>&1 & }
 
+# Update helix theme
+if command -v hx >/dev/null 2>&1; then
+  hx_theme="tokyonight"
+  case "$name" in
+    tokyo-night) hx_theme="tokyonight" ;;
+    catppuccin) hx_theme="catppuccin_mocha" ;;
+    everforest) hx_theme="everforest_dark" ;;
+    rose-pine) hx_theme="rose_pine_moon" ;;
+    gruvbox) hx_theme="gruvbox_dark_hard" ;;
+    nord) hx_theme="nord" ;;
+    kanagawa) hx_theme="kanagawa" ;;
+    osaka-jade) hx_theme="catppuccin_mocha" ;;
+  esac
+  sed -i "s/^theme = .*/theme = \"$hx_theme\"/" "$CFG/helix/config.toml" 2>/dev/null || true
+fi
+
 
 
 # Background: keep if it belongs to this theme, else pick random
