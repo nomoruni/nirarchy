@@ -212,7 +212,7 @@ show_about() {
 }
 
 show_system_menu() {
-  local options="󰌾  Lock\n󰒲  Suspend\n󰍃  Logout\n󰜉  Restart\n󰐥  Shutdown\n󰚝  Diagnose last crash\n󰂚  Debug report (opencode)"
+  local options="󰌾  Lock\n󰒲  Suspend\n󰍃  Logout\n󰜉  Restart\n󰐥  Shutdown\n󱓞  Restart Nirarchy\n󰚝  Diagnose last crash\n󰂚  Debug report (opencode)"
 
   case $(menu "System" "$options") in
   *Lock*) nirarchy-system-lock ;;
@@ -220,6 +220,7 @@ show_system_menu() {
   *Logout*) nirarchy-system-logout ;;
   *Restart*) nirarchy-system-reboot ;;
   *Shutdown*) nirarchy-system-shutdown ;;
+  *Restart*Nirarchy*) nirarchy-restart-bar ;;
   *Diagnose*) nirarchy-agent-crash ;;
   *Debug*) nirarchy-debug --opencode ;;
   *) back_to show_main_menu ;;

@@ -1,0 +1,8 @@
+#!/bin/bash
+# Restart the nirarchy bar (Quickshell)
+systemctl --user restart nirarchy-bar.service 2>/dev/null || {
+  pkill -x quickshell 2>/dev/null || true
+  sleep 1
+  setsid quickshell -p "$HOME/.config/quickshell/niri" >/dev/null 2>&1 &
+}
+notify-send -u low "Nirarchy" "Bar restarted"
