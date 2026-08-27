@@ -266,7 +266,7 @@ PopupWindow {
 
                     StepBtn {
                         text: "−"
-                        onDo: if (Pomodoro.workDuration > 1) { Pomodoro.workDuration = Pomodoro.workDuration - 60; Pomodoro.saveState(); }
+                        doAction: if (Pomodoro.workDuration > 1) { Pomodoro.workDuration = Pomodoro.workDuration - 60; Pomodoro.saveState(); }
                     }
 
                     Text {
@@ -281,7 +281,7 @@ PopupWindow {
 
                     StepBtn {
                         text: "+"
-                        onDo: { Pomodoro.workDuration = Pomodoro.workDuration + 60; Pomodoro.saveState(); }
+                        doAction: { Pomodoro.workDuration = Pomodoro.workDuration + 60; Pomodoro.saveState(); }
                     }
                 }
             }
@@ -307,7 +307,7 @@ PopupWindow {
 
                     StepBtn {
                         text: "−"
-                        onDo: if (Pomodoro.breakDuration > 1) { Pomodoro.breakDuration = Pomodoro.breakDuration - 60; Pomodoro.saveState(); }
+                        doAction: if (Pomodoro.breakDuration > 1) { Pomodoro.breakDuration = Pomodoro.breakDuration - 60; Pomodoro.saveState(); }
                     }
 
                     Text {
@@ -322,7 +322,7 @@ PopupWindow {
 
                     StepBtn {
                         text: "+"
-                        onDo: { Pomodoro.breakDuration = Pomodoro.breakDuration + 60; Pomodoro.saveState(); }
+                        doAction: { Pomodoro.breakDuration = Pomodoro.breakDuration + 60; Pomodoro.saveState(); }
                     }
                 }
             }
@@ -348,7 +348,7 @@ PopupWindow {
 
                     StepBtn {
                         text: "−"
-                        onDo: if (Pomodoro.longBreakDuration > 1) { Pomodoro.longBreakDuration = Pomodoro.longBreakDuration - 60; Pomodoro.saveState(); }
+                        doAction: if (Pomodoro.longBreakDuration > 1) { Pomodoro.longBreakDuration = Pomodoro.longBreakDuration - 60; Pomodoro.saveState(); }
                     }
 
                     Text {
@@ -363,7 +363,7 @@ PopupWindow {
 
                     StepBtn {
                         text: "+"
-                        onDo: { Pomodoro.longBreakDuration = Pomodoro.longBreakDuration + 60; Pomodoro.saveState(); }
+                        doAction: { Pomodoro.longBreakDuration = Pomodoro.longBreakDuration + 60; Pomodoro.saveState(); }
                     }
                 }
             }
@@ -389,7 +389,7 @@ PopupWindow {
 
                     StepBtn {
                         text: "−"
-                        onDo: if (Pomodoro.sessionsBeforeLong > 2) { Pomodoro.sessionsBeforeLong = Pomodoro.sessionsBeforeLong - 1; Pomodoro.saveState(); }
+                        doAction: if (Pomodoro.sessionsBeforeLong > 2) { Pomodoro.sessionsBeforeLong = Pomodoro.sessionsBeforeLong - 1; Pomodoro.saveState(); }
                     }
 
                     Text {
@@ -404,7 +404,7 @@ PopupWindow {
 
                     StepBtn {
                         text: "+"
-                        onDo: { Pomodoro.sessionsBeforeLong = Pomodoro.sessionsBeforeLong + 1; Pomodoro.saveState(); }
+                        doAction: { Pomodoro.sessionsBeforeLong = Pomodoro.sessionsBeforeLong + 1; Pomodoro.saveState(); }
                     }
                 }
             }
@@ -444,7 +444,7 @@ PopupWindow {
 
     component StepBtn: Rectangle {
         property string text: ""
-        property var onDo: null
+        property var doAction: null
 
         width: 22
         height: 22
@@ -467,8 +467,8 @@ PopupWindow {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
             onClicked: {
-                if (parent.onDo)
-                    parent.onDo();
+                if (parent.doAction)
+                    parent.doAction();
             }
         }
     }
