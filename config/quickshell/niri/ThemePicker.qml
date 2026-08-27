@@ -2,7 +2,8 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Effects
+import QtQuick.Shapes
 
 PanelWindow {
     id: pickerRoot
@@ -11,20 +12,30 @@ PanelWindow {
     property string mode: "themes"
     property string filterText: ""
     property var entries: []
-    property int currentIndex: 0
+    property int selectedIndex: 0
+    property bool imagesLoaded: false
+
+    property int expandedWidth: 560
+    property int expandedHeight: 320
+    property int sliceWidth: 90
+    property int sliceHeight: 300
+    property int sliceSpacing: -24
+    property int skewOffset: 22
+    property int bottomChromeHeight: 66
 
     function openPicker(m) {
         mode = m;
         filterText = "";
-        currentIndex = 0;
+        selectedIndex = 0;
+        imagesLoaded = false;
+        entries = [];
         loadEntries();
         open = true;
-        searchField.forceActiveFocus();
     }
 
     function closePicker() {
         open = false;
-        searchField.text = "";
+        filterText = "";
     }
 
     function loadEntries() {
@@ -32,14 +43,104 @@ PanelWindow {
         listProc.running = true;
     }
 
+    function labelFor(value) {
+        for (let i = 0; i < entries.length; i++)
+            if (entries[i].value === value)
+                return entries[i].label;
+        return value;
+    }
+
+    function currentLabel() {
+        if (entries.length === 0 || !itemMatches(selectedIndex))
+            return filterText ? "No matches" : "";
+        return entries[selectedIndex].label;
+    }
+
+    function matchesFilter(e) {
+        if (!filterText)
+            return true;
+        return e.label.toLowerCase().includes(filterText);
+    }
+
+    function itemMatches(index) {
+        return index >= 0 && index < entries.length && matchesFilter(entries[index]);
+    }
+
+    function firstMatchingIndex() {
+        for (let i = 0; i < entries.length; i++)
+            if (itemMatches(i))
+                return i;
+        return -1;
+    }
+
+    function visibleCountBefore(index) {
+        let c = 0;
+        for (let i = 0; i < index; i++)
+            if (itemMatches(i))
+                c++;
+        return c;
+    }
+
+    function selectedVisiblePos() {
+        return visibleCountBefore(selectedIndex);
+    }
+
+    function relativeIndex(index) {
+        if (!itemMatches(index))
+            return 0;
+        return visibleCountBefore(index) - selectedVisiblePos();
+    }
+
+    function select(index) {
+        if (entries.length === 0)
+            return;
+        let target = index;
+        if (target < 0)
+            target = entries.length - 1;
+        else if (target >= entries.length)
+            target = 0;
+        if (!itemMatches(target))
+            return;
+        selectedIndex = target;
+    }
+
+    function selectAdjacent(direction) {
+        let count = entries.length;
+        if (count === 0)
+            return;
+        let index = selectedIndex;
+        for (let i = 0; i < count; i++) {
+            index = (index + direction + count) % count;
+            if (itemMatches(index)) {
+                selectedIndex = index;
+                return;
+            }
+        }
+    }
+
+    function updateFilter(next) {
+        filterText = next;
+        if (!itemMatches(selectedIndex)) {
+            const first = firstMatchingIndex();
+            if (first >= 0)
+                selectedIndex = first;
+        }
+    }
+
+    function applySelected() {
+        const e = entries[selectedIndex];
+        if (!e || !itemMatches(selectedIndex))
+            return;
+        if (mode === "backgrounds")
+            Actions.detached("nirarchy-background-set '" + e.value.replace(/'/g, "'\\''") + "'");
+        else
+            Actions.detached("nirarchy-theme-set '" + e.value.replace(/'/g, "'\\''") + "'");
+        closePicker();
+    }
+
     implicitWidth: 0
     implicitHeight: 0
-    anchors {
-        top: true
-        left: true
-        right: true
-        bottom: true
-    }
+    anchors { top: true; left: true; right: true; bottom: true }
     color: "transparent"
     visible: open
 
@@ -66,6 +167,11 @@ PanelWindow {
                     });
                 }
                 pickerRoot.entries = rows;
+                pickerRoot.imagesLoaded = true;
+                if (rows.length > 0) {
+                    pickerRoot.selectedIndex = 0;
+                    Qt.callLater(function() { carousel.forceActiveFocus(); });
+                }
             }
         }
     }
@@ -74,13 +180,8 @@ PanelWindow {
         id: scrim
 
         anchors.fill: parent
-        color: Qt.rgba(0, 0, 0, 1)
-        opacity: pickerRoot.open ? 1 : 0
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 140
-            }
-        }
+        color: Theme.bg
+        visible: pickerRoot.open
 
         MouseArea {
             anchors.fill: parent
@@ -88,218 +189,205 @@ PanelWindow {
         }
     }
 
-    Rectangle {
-        id: panel
+    Item {
+        id: card
 
-        property int panelWidth: 860
-        property int panelHeight: 560
-
+        visible: pickerRoot.open && pickerRoot.imagesLoaded && pickerRoot.entries.length > 0
+        width: Math.min(parent.width - 80, pickerRoot.expandedWidth + 13 * (pickerRoot.sliceWidth + pickerRoot.sliceSpacing) + 40)
+        height: pickerRoot.expandedHeight + 52 + pickerRoot.bottomChromeHeight
         anchors.centerIn: parent
-        width: panelWidth
-        height: panelHeight
-        radius: 0
-        color: Theme.bg
-        border.color: Theme.accent
-        border.width: 1
-        opacity: pickerRoot.open ? 1 : 0
-        scale: pickerRoot.open ? 1 : 0.94
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 140
-            }
-        }
-        Behavior on scale {
-            NumberAnimation {
-                duration: 140
-                easing.type: Easing.OutQuad
-            }
-        }
 
-        Column {
-            anchors.fill: parent
-            anchors.margins: 18
-            spacing: 12
+        MouseArea { anchors.fill: parent; onClicked: {} }
 
-            Item {
-                width: parent.width
-                height: 40
+        Item {
+            id: carousel
 
-                Text {
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: pickerRoot.mode === "backgrounds" ? "Backgrounds" : "Themes"
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 17
-                    font.bold: true
-                    color: Theme.fg
-                }
+            anchors.top: parent.top
+            anchors.topMargin: 28
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: pickerRoot.bottomChromeHeight
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: pickerRoot.expandedWidth + 13 * (pickerRoot.sliceWidth + pickerRoot.sliceSpacing)
+            clip: false
+            focus: true
 
-                TextField {
-                    id: searchField
+            readonly property real itemStep: pickerRoot.sliceWidth + pickerRoot.sliceSpacing
+            readonly property real previewX: (width - pickerRoot.expandedWidth) / 2
 
-                    anchors.right: parent.right
-                    width: 240
-                    height: 34
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 13
-                    color: Theme.fg
-                    placeholderText: "Filter…"
-                    background: Rectangle {
-                        radius: 0
-                        color: Theme.bgLight
-                        border.color: searchField.activeFocus ? Theme.accent : "transparent"
+            Keys.priority: Keys.BeforeItem
+            Keys.onPressed: event => {
+                if (event.key === Qt.Key_Escape) {
+                    if (pickerRoot.filterText)
+                        pickerRoot.updateFilter("");
+                    else
+                        pickerRoot.closePicker();
+                    event.accepted = true;
+                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    pickerRoot.applySelected();
+                    event.accepted = true;
+                } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Backtab || (event.key === Qt.Key_Tab && event.modifiers & Qt.ShiftModifier)) {
+                    pickerRoot.selectAdjacent(-1);
+                    event.accepted = true;
+                } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Tab) {
+                    pickerRoot.selectAdjacent(1);
+                    event.accepted = true;
+                } else if (event.key === Qt.Key_Backspace) {
+                    if (pickerRoot.filterText) {
+                        pickerRoot.updateFilter(pickerRoot.filterText.slice(0, -1));
+                        event.accepted = true;
                     }
-                    onTextChanged: pickerRoot.filterText = text.toLowerCase()
-                    Keys.onPressed: event => {
-                        if (event.key === Qt.Key_Escape) {
-                            pickerRoot.closePicker();
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_Down || event.key === Qt.Key_J) {
-                            grid.moveCurrentIndexDown();
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_Up || event.key === Qt.Key_K) {
-                            grid.moveCurrentIndexUp();
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_Right || event.key === Qt.Key_L) {
-                            grid.moveCurrentIndexRight();
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_Left || event.key === Qt.Key_H) {
-                            grid.moveCurrentIndexLeft();
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                            pickerRoot.applyEntry(grid.currentIndex);
-                            event.accepted = true;
-                        }
-                    }
+                } else if (event.text && event.text.length === 1 && event.text.charCodeAt(0) >= 32
+                           && event.text.charCodeAt(0) !== 127
+                           && (event.modifiers === Qt.NoModifier || event.modifiers === Qt.ShiftModifier)) {
+                    pickerRoot.updateFilter(pickerRoot.filterText + event.text);
+                    event.accepted = true;
                 }
             }
 
-            GridView {
-                id: grid
+            Component.onCompleted: forceActiveFocus()
 
-                width: parent.width
-                height: parent.height - 52
-                clip: true
-                cellWidth: 205
-                cellHeight: 165
-                model: ScriptModel {
-                    values: {
-                        const f = pickerRoot.filterText;
-                        if (!f)
-                            return pickerRoot.entries;
-                        return pickerRoot.entries.filter(e => e.label.toLowerCase().includes(f));
-                    }
-                }
-                currentIndex: 0
-                highlightFollowsCurrentItem: true
+            Repeater {
+                model: pickerRoot.entries.length
 
                 delegate: Item {
-                    id: cardRoot
+                    id: item
 
-                    required property var modelData
                     required property int index
 
-                    width: grid.cellWidth - 12
-                    height: grid.cellHeight - 12
+                    readonly property var itemData: pickerRoot.entries[index]
+                    readonly property bool matched: pickerRoot.itemMatches(index)
+                    readonly property int relIndex: pickerRoot.relativeIndex(index)
+                    readonly property bool sel: matched && index === pickerRoot.selectedIndex
+                    readonly property bool nearby: matched && Math.abs(relIndex) <= 12
+                    property bool sourceActivated: false
+                    onNearbyChanged: if (nearby) sourceActivated = true
 
-                    Rectangle {
-                        id: card
+                    visible: nearby
+                    x: sel ? carousel.previewX
+                           : (relIndex < 0
+                              ? carousel.previewX + relIndex * carousel.itemStep
+                              : carousel.previewX + pickerRoot.expandedWidth + pickerRoot.sliceSpacing + (relIndex - 1) * carousel.itemStep)
+                    width: sel ? pickerRoot.expandedWidth : pickerRoot.sliceWidth
+                    height: sel ? pickerRoot.expandedHeight : pickerRoot.sliceHeight
+                    y: sel ? 0 : (pickerRoot.expandedHeight - pickerRoot.sliceHeight) / 2
+                    z: sel ? 100 : 50 - Math.min(Math.abs(relIndex), 40)
 
+                    readonly property real skAbs: Math.abs(pickerRoot.skewOffset)
+                    readonly property real topLeft: pickerRoot.skewOffset >= 0 ? skAbs : 0
+                    readonly property real topRight: pickerRoot.skewOffset >= 0 ? width : width - skAbs
+                    readonly property real bottomRight: pickerRoot.skewOffset >= 0 ? width - skAbs : width
+                    readonly property real bottomLeft: pickerRoot.skewOffset >= 0 ? 0 : skAbs
+
+                    Item {
+                        id: maskShape
                         anchors.fill: parent
-                        radius: 0
-                        color: cardMouse.containsMouse ? Theme.bgLight : Theme.bg
-                        border.width: 2
-                        border.color: grid.currentIndex === cardRoot.index ? Theme.accent : "transparent"
-                        Behavior on border.color {
-                            ColorAnimation {
-                                duration: 100
+                        visible: false
+                        layer.enabled: true
+
+                        Shape {
+                            anchors.fill: parent
+                            antialiasing: true
+                            preferredRendererType: Shape.CurveRenderer
+                            ShapePath {
+                                fillColor: "white"
+                                strokeColor: "transparent"
+                                startX: item.topLeft; startY: 0
+                                PathLine { x: item.topRight; y: 0 }
+                                PathLine { x: item.bottomRight; y: item.height }
+                                PathLine { x: item.bottomLeft; y: item.height }
+                                PathLine { x: item.topLeft; y: 0 }
                             }
                         }
+                    }
 
-                        Column {
+                    Item {
+                        anchors.fill: parent
+                        layer.enabled: true
+                        layer.smooth: true
+                        layer.effect: MultiEffect {
+                            maskEnabled: true
+                            maskSource: maskShape
+                            maskThresholdMin: 0.3
+                            maskSpreadAtMin: 0.3
+                        }
+
+                        Image {
                             anchors.fill: parent
-                            anchors.margins: 8
-                            spacing: 6
+                            source: item.sourceActivated && item.itemData && item.itemData.image
+                                   ? (item.itemData.image.startsWith("/") ? "file://" + item.itemData.image : item.itemData.image)
+                                   : ""
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: false
+                            cache: true
+                            smooth: true
+                        }
 
-                            Item {
-                                width: parent.width
-                                height: parent.height - 26
+                        Rectangle {
+                            anchors.fill: parent
+                            color: Qt.rgba(0, 0, 0, item.sel ? 0 : 0.5)
+                        }
+                    }
 
-                                Image {
-                                    anchors.fill: parent
-                                    source: cardRoot.modelData.image.startsWith("/") ? "file://" + cardRoot.modelData.image : cardRoot.modelData.image
-                                    fillMode: Image.PreserveAspectCrop
-                                    asynchronous: true
-                                    cache: true
-                                    visible: cardRoot.modelData.image !== ""
-                                }
-
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: 0
-                                    color: Theme.bgLight
-                                    visible: cardRoot.modelData.image === ""
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "no preview"
-                                        font.family: Theme.fontFamily
-                                        font.pixelSize: 11
-                                        color: Theme.dim
-                                    }
-                                }
-
-                                clip: true
-                            }
-
-                            Text {
-                                width: parent.width
-                                text: cardRoot.modelData.label
-                                elide: Text.ElideRight
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 12
-                                color: grid.currentIndex === cardRoot.index ? Theme.accent : Theme.fg
-                            }
+                    Shape {
+                        anchors.fill: parent
+                        antialiasing: true
+                        preferredRendererType: Shape.CurveRenderer
+                        ShapePath {
+                            fillColor: "transparent"
+                            strokeColor: item.sel ? Theme.accent : Theme.dim
+                            strokeWidth: item.sel ? 3 : 1
+                            startX: item.topLeft; startY: 0
+                            PathLine { x: item.topRight; y: 0 }
+                            PathLine { x: item.bottomRight; y: item.height }
+                            PathLine { x: item.bottomLeft; y: item.height }
+                            PathLine { x: item.topLeft; y: 0 }
                         }
                     }
 
                     MouseArea {
-                        id: cardMouse
-
                         anchors.fill: parent
-                        hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            grid.currentIndex = cardRoot.index;
-                            pickerRoot.applyEntry(cardRoot.index);
-                        }
-                        onEntered: grid.currentIndex = cardRoot.index
-                    }
-                }
-
-                Keys.onPressed: event => {
-                    if (event.key === Qt.Key_Escape) {
-                        pickerRoot.closePicker();
-                        event.accepted = true;
-                    } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                        pickerRoot.applyEntry(grid.currentIndex);
-                        event.accepted = true;
+                        onClicked: item.sel ? pickerRoot.applySelected() : pickerRoot.select(index)
                     }
                 }
             }
         }
-    }
 
-    function applyEntry(i) {
-        const vis = grid.model.values ?? [];
-        const e = vis[i];
-        if (!e)
-            return;
-        if (mode === "backgrounds")
-            Actions.detached("nirarchy-background-set '" + e.value.replace(/'/g, "'\\''") + "'");
-        else
-            Actions.detached("nirarchy-theme-set '" + e.value.replace(/'/g, "'\\''") + "'");
-        closePicker();
+        Item {
+            anchors.top: carousel.bottom
+            anchors.topMargin: 10
+            anchors.horizontalCenter: carousel.horizontalCenter
+            width: pickerRoot.expandedWidth
+            height: 46
+
+            Text {
+                id: titleLabel
+
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                text: pickerRoot.currentLabel()
+                color: Theme.fg
+                font.family: Theme.fontFamily
+                font.pixelSize: 18
+                font.bold: true
+                horizontalAlignment: Text.AlignHCenter
+                elide: Text.ElideRight
+            }
+
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: titleLabel.bottom
+                anchors.topMargin: 5
+                text: pickerRoot.filterText ? "filter: " + pickerRoot.filterText
+                                            : (pickerRoot.mode === "backgrounds" ? "← → browse   ↵ apply   Esc close"
+                                                                                : "← → browse   ↵ apply   Esc close   type to filter")
+                color: Theme.dim
+                font.family: Theme.fontFamily
+                font.pixelSize: 11
+                horizontalAlignment: Text.AlignHCenter
+                elide: Text.ElideRight
+            }
+        }
     }
 
     IpcHandler {
