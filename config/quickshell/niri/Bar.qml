@@ -267,6 +267,24 @@ PanelWindow {
             anchors.centerIn: parent
             spacing: 2
 
+            BarButton {
+                visible: Pomodoro.running || Pomodoro.mode !== "idle"
+                glyph: Pomodoro.modeIcon()
+                label: Pomodoro.running ? Pomodoro.formattedTime() : ""
+                glyphTint: Pomodoro.mode === "work" ? Theme.red : Pomodoro.mode === "idle" ? Theme.dim : Theme.green
+                accentColor: Pomodoro.running
+                tip: Pomodoro.modeLabel() + (Pomodoro.running ? " · " + Pomodoro.formattedTime() : "") + "\n\nSession " + (Pomodoro.sessions + 1) + "/" + Pomodoro.sessionsBeforeLong + "\nRight-click to open controls"
+                onClickAction: () => Pomodoro.start()
+                onRightClickAction: () => {
+                    if (pomoPopup.visible) {
+                        pomoPopup.visible = false;
+                        return;
+                    }
+                    const px = mapToItem(bar.contentItem, 0, 0).x;
+                    pomoPopup.openAt(px);
+                }
+            }
+
             ClockWidget {
                 barWin: bar
                 calendar: calPopup
@@ -443,6 +461,14 @@ PanelWindow {
         onClosed: btBtnOpen = false
     }
 
+    PomodoroPopup {
+        id: pomoPopup
+
+        barWin: bar
+        onClosed: pomoBtnOpen = false
+    }
+
     property bool wifiBtnOpen: false
     property bool btBtnOpen: false
+    property bool pomoBtnOpen: false
 }

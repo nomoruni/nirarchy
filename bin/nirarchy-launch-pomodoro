@@ -1,0 +1,4 @@
+#!/bin/bash
+# Launch pomodoro popup via quickshell IPC
+qdbus org.quickshell /org/quickshell/IPC org.quickshell.IPC.invoke "pomodoropopup" "toggle" 2>/dev/null || \
+  notify-send -u low "Pomodoro" "Quickshell IPC not available"

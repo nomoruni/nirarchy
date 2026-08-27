@@ -66,7 +66,7 @@ layout {
     border {
         on
         width 2
-        active-gradient from="#7daea3" to="#89b482" angle=45
+        active-gradient from="#a9b665" to="#89b482" angle=45
         inactive-color "#3c3836aa"
     }
 // NIRARCHY-THEME:END
@@ -237,6 +237,7 @@ binds {
     Mod+Ctrl+W { spawn "nirarchy-launch-wifi"; }
     Mod+Ctrl+T { spawn "nirarchy-launch-or-focus-tui" "btop"; }
     Mod+Ctrl+X { spawn "nirarchy-agent"; }
+    Mod+Ctrl+P { spawn "nirarchy-launch-pomodoro"; }
 
     // Reminders
     Mod+Ctrl+Alt+R { spawn "nirarchy-reminder" "show"; }
