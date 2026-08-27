@@ -268,12 +268,12 @@ PanelWindow {
             spacing: 2
 
             BarButton {
-                visible: Pomodoro.running || Pomodoro.mode !== "idle"
+                visible: true
                 glyph: Pomodoro.modeIcon()
                 label: Pomodoro.running ? Pomodoro.formattedTime() : ""
                 glyphTint: Pomodoro.mode === "work" ? Theme.red : Pomodoro.mode === "idle" ? Theme.dim : Theme.green
                 accentColor: Pomodoro.running
-                tip: Pomodoro.modeLabel() + (Pomodoro.running ? " · " + Pomodoro.formattedTime() : "") + "\n\nSession " + (Pomodoro.sessions + 1) + "/" + Pomodoro.sessionsBeforeLong + "\nRight-click to open controls"
+                tip: Pomodoro.modeLabel() + (Pomodoro.running ? " · " + Pomodoro.formattedTime() : "") + "\n\nSession " + (Pomodoro.sessions + 1) + "/" + Pomodoro.sessionsBeforeLong + "\nLeft-click: start / pause\nRight-click: open controls"
                 onClickAction: () => Pomodoro.start()
                 onRightClickAction: () => {
                     if (pomoPopup.visible) {
