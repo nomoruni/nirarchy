@@ -238,7 +238,7 @@ PopupWindow {
 
                     Text {
                         anchors.centerIn: parent
-                        text: "󰦖"
+                        text: ""
                         font.family: Theme.fontFamily
                         font.pixelSize: 14
                         color: Theme.bg
