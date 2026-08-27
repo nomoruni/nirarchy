@@ -264,9 +264,34 @@ PopupWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 4
 
-                    StepBtn {
-                        text: "−"
-                        doAction: if (Pomodoro.workDuration > 1) { Pomodoro.workDuration = Pomodoro.workDuration - 60; Pomodoro.saveState(); }
+                    Rectangle {
+                        width: 22
+                        height: 22
+                        radius: 0
+                        color: workMinusHover.containsMouse ? Theme.accent : Theme.bgLight
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "−"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 14
+                            color: workMinusHover.containsMouse ? Theme.bg : Theme.fg
+                        }
+
+                        HoverHandler {
+                            id: workMinusHover
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (Pomodoro.workDuration > 1) {
+                                    Pomodoro.workDuration = Pomodoro.workDuration - 60;
+                                    Pomodoro.saveState();
+                                }
+                            }
+                        }
                     }
 
                     Text {
@@ -279,9 +304,32 @@ PopupWindow {
                         color: Theme.fg
                     }
 
-                    StepBtn {
-                        text: "+"
-                        doAction: { Pomodoro.workDuration = Pomodoro.workDuration + 60; Pomodoro.saveState(); }
+                    Rectangle {
+                        width: 22
+                        height: 22
+                        radius: 0
+                        color: workPlusHover.containsMouse ? Theme.accent : Theme.bgLight
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "+"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 14
+                            color: workPlusHover.containsMouse ? Theme.bg : Theme.fg
+                        }
+
+                        HoverHandler {
+                            id: workPlusHover
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                Pomodoro.workDuration = Pomodoro.workDuration + 60;
+                                Pomodoro.saveState();
+                            }
+                        }
                     }
                 }
             }
@@ -305,9 +353,34 @@ PopupWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 4
 
-                    StepBtn {
-                        text: "−"
-                        doAction: if (Pomodoro.breakDuration > 1) { Pomodoro.breakDuration = Pomodoro.breakDuration - 60; Pomodoro.saveState(); }
+                    Rectangle {
+                        width: 22
+                        height: 22
+                        radius: 0
+                        color: breakMinusHover.containsMouse ? Theme.accent : Theme.bgLight
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "−"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 14
+                            color: breakMinusHover.containsMouse ? Theme.bg : Theme.fg
+                        }
+
+                        HoverHandler {
+                            id: breakMinusHover
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (Pomodoro.breakDuration > 1) {
+                                    Pomodoro.breakDuration = Pomodoro.breakDuration - 60;
+                                    Pomodoro.saveState();
+                                }
+                            }
+                        }
                     }
 
                     Text {
@@ -320,9 +393,32 @@ PopupWindow {
                         color: Theme.fg
                     }
 
-                    StepBtn {
-                        text: "+"
-                        doAction: { Pomodoro.breakDuration = Pomodoro.breakDuration + 60; Pomodoro.saveState(); }
+                    Rectangle {
+                        width: 22
+                        height: 22
+                        radius: 0
+                        color: breakPlusHover.containsMouse ? Theme.accent : Theme.bgLight
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "+"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 14
+                            color: breakPlusHover.containsMouse ? Theme.bg : Theme.fg
+                        }
+
+                        HoverHandler {
+                            id: breakPlusHover
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                Pomodoro.breakDuration = Pomodoro.breakDuration + 60;
+                                Pomodoro.saveState();
+                            }
+                        }
                     }
                 }
             }
@@ -346,9 +442,34 @@ PopupWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 4
 
-                    StepBtn {
-                        text: "−"
-                        doAction: if (Pomodoro.longBreakDuration > 1) { Pomodoro.longBreakDuration = Pomodoro.longBreakDuration - 60; Pomodoro.saveState(); }
+                    Rectangle {
+                        width: 22
+                        height: 22
+                        radius: 0
+                        color: longMinusHover.containsMouse ? Theme.accent : Theme.bgLight
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "−"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 14
+                            color: longMinusHover.containsMouse ? Theme.bg : Theme.fg
+                        }
+
+                        HoverHandler {
+                            id: longMinusHover
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (Pomodoro.longBreakDuration > 1) {
+                                    Pomodoro.longBreakDuration = Pomodoro.longBreakDuration - 60;
+                                    Pomodoro.saveState();
+                                }
+                            }
+                        }
                     }
 
                     Text {
@@ -361,9 +482,32 @@ PopupWindow {
                         color: Theme.fg
                     }
 
-                    StepBtn {
-                        text: "+"
-                        doAction: { Pomodoro.longBreakDuration = Pomodoro.longBreakDuration + 60; Pomodoro.saveState(); }
+                    Rectangle {
+                        width: 22
+                        height: 22
+                        radius: 0
+                        color: longPlusHover.containsMouse ? Theme.accent : Theme.bgLight
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "+"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 14
+                            color: longPlusHover.containsMouse ? Theme.bg : Theme.fg
+                        }
+
+                        HoverHandler {
+                            id: longPlusHover
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                Pomodoro.longBreakDuration = Pomodoro.longBreakDuration + 60;
+                                Pomodoro.saveState();
+                            }
+                        }
                     }
                 }
             }
@@ -387,9 +531,34 @@ PopupWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 4
 
-                    StepBtn {
-                        text: "−"
-                        doAction: if (Pomodoro.sessionsBeforeLong > 2) { Pomodoro.sessionsBeforeLong = Pomodoro.sessionsBeforeLong - 1; Pomodoro.saveState(); }
+                    Rectangle {
+                        width: 22
+                        height: 22
+                        radius: 0
+                        color: sessMinusHover.containsMouse ? Theme.accent : Theme.bgLight
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "−"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 14
+                            color: sessMinusHover.containsMouse ? Theme.bg : Theme.fg
+                        }
+
+                        HoverHandler {
+                            id: sessMinusHover
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (Pomodoro.sessionsBeforeLong > 2) {
+                                    Pomodoro.sessionsBeforeLong = Pomodoro.sessionsBeforeLong - 1;
+                                    Pomodoro.saveState();
+                                }
+                            }
+                        }
                     }
 
                     Text {
@@ -402,9 +571,32 @@ PopupWindow {
                         color: Theme.fg
                     }
 
-                    StepBtn {
-                        text: "+"
-                        doAction: { Pomodoro.sessionsBeforeLong = Pomodoro.sessionsBeforeLong + 1; Pomodoro.saveState(); }
+                    Rectangle {
+                        width: 22
+                        height: 22
+                        radius: 0
+                        color: sessPlusHover.containsMouse ? Theme.accent : Theme.bgLight
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "+"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 14
+                            color: sessPlusHover.containsMouse ? Theme.bg : Theme.fg
+                        }
+
+                        HoverHandler {
+                            id: sessPlusHover
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                Pomodoro.sessionsBeforeLong = Pomodoro.sessionsBeforeLong + 1;
+                                Pomodoro.saveState();
+                            }
+                        }
                     }
                 }
             }
@@ -427,48 +619,17 @@ PopupWindow {
                     }
                 }
             }
+        }
 
-            IpcHandler {
-                target: "pomodoropopup"
+        IpcHandler {
+            target: "pomodoropopup"
 
-                function toggle(): void {
-                    if (popupRoot.visible) {
-                        popupRoot.visible = false;
-                        return;
-                    }
-                    popupRoot.openAt((popupRoot.barWin?.width ?? 800) - popupRoot.implicitWidth);
+            function toggle(): void {
+                if (popupRoot.visible) {
+                    popupRoot.visible = false;
+                    return;
                 }
-            }
-        }
-    }
-
-    component StepBtn: Rectangle {
-        property string text: ""
-        property var doAction: null
-
-        width: 22
-        height: 22
-        radius: 0
-        color: stepHover.containsMouse ? Theme.accent : Theme.bgLight
-
-        Text {
-            anchors.centerIn: parent
-            text: parent.text
-            font.family: Theme.fontFamily
-            font.pixelSize: 14
-            color: stepHover.containsMouse ? Theme.bg : Theme.fg
-        }
-
-        HoverHandler {
-            id: stepHover
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                if (parent.doAction)
-                    parent.doAction();
+                popupRoot.openAt((popupRoot.barWin?.width ?? 800) - popupRoot.implicitWidth);
             }
         }
     }
