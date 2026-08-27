@@ -78,6 +78,7 @@ child:selected .item-box * {
 }
 
 child:selected {
+  border: 2px solid @selected;
   background: alpha(@text, 0.07);
 }
 
