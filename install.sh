@@ -91,7 +91,8 @@ if ! $NO_PKG; then
     walker elephant xdg-terminal-exec \
     elephant-desktopapplications elephant-clipboard elephant-symbols \
     elephant-calc elephant-menus elephant-files \
-    quickshell-git
+    quickshell-git \
+    xcursor-simp1e gtk-theme-arc-gruvbox-git
   ok "AUR packages"
 else
   say "Skipping package installation (--no-pkg)"
@@ -296,25 +297,33 @@ ok "PATH"
 say "Applying default theme (tokyo-night)"
 "$HOME/.local/bin/nirarchy-theme-set" tokyo-night || true
 
-# Set default icon theme
+# Set default icon, GTK, and cursor theme
 mkdir -p "$HOME/.config"
 if [[ -f "$HOME/.config/gtk-3.0/settings.ini" ]]; then
   sed -i 's/^gtk-icon-theme-name=.*/gtk-icon-theme-name=Papirus/' "$HOME/.config/gtk-3.0/settings.ini"
+  sed -i 's/^gtk-theme-name=.*/gtk-theme-name=Arc-Gruvbox/' "$HOME/.config/gtk-3.0/settings.ini"
+  sed -i 's/^gtk-cursor-theme-name=.*/gtk-cursor-theme-name=Simp1e/' "$HOME/.config/gtk-3.0/settings.ini"
 else
   cat >"$HOME/.config/gtk-3.0/settings.ini" <<'EOF'
 [Settings]
 gtk-icon-theme-name=Papirus
-gtk-theme-name=Papirus-Dark
+gtk-theme-name=Arc-Gruvbox
+gtk-cursor-theme-name=Simp1e
+gtk-cursor-theme-size=24
 EOF
 fi
 if [[ -f "$HOME/.config/gtk-4.0/settings.ini" ]]; then
   sed -i 's/^gtk-icon-theme-name=.*/gtk-icon-theme-name=Papirus/' "$HOME/.config/gtk-4.0/settings.ini"
+  sed -i 's/^gtk-theme-name=.*/gtk-theme-name=Arc-Gruvbox/' "$HOME/.config/gtk-4.0/settings.ini"
+  sed -i 's/^gtk-cursor-theme-name=.*/gtk-cursor-theme-name=Simp1e/' "$HOME/.config/gtk-4.0/settings.ini"
 else
   mkdir -p "$HOME/.config/gtk-4.0"
   cat >"$HOME/.config/gtk-4.0/settings.ini" <<'EOF'
 [Settings]
 gtk-icon-theme-name=Papirus
-gtk-theme-name=Papirus-Dark
+gtk-theme-name=Arc-Gruvbox
+gtk-cursor-theme-name=Simp1e
+gtk-cursor-theme-size=24
 EOF
 fi
 ok "theme applied"

@@ -40,7 +40,7 @@ input {
 }
 
 cursor {
-    xcursor-theme "Breeze_Light"
+    xcursor-theme "Simp1e"
     xcursor-size 24
     hide-when-typing true
     hide-after-inactive-ms 5000
