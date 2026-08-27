@@ -22,7 +22,7 @@ scrollbar {
 }
 
 .box-wrapper {
-  background: alpha(@base, 0.95);
+  background: @base;
   padding: 20px;
   border: 2px solid @border;
 }
@@ -78,7 +78,7 @@ child:selected .item-box * {
 }
 
 child:selected {
-  background: alpha(@text, 0.07);
+  background: @selected;
 }
 
 .item-box {

@@ -21,8 +21,9 @@ battery)
     echo none
     ;;
 audio)
-    vol=$(pamixer --get-volume 2>/dev/null || echo 0)
-    mute=$(pamixer --get-mute 2>/dev/null)
+    # Use wpctl for PipeWire audio
+    vol=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | grep -oP '\d+\.\d+' | awk '{printf "%.0f", $1 * 100}')
+    mute=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | grep -q "MUTED" && echo true || echo false)
     [[ $mute == true ]] && m=1 || m=0
     echo "${vol:-0}|$m"
     ;;

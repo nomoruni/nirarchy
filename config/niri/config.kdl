@@ -4,7 +4,7 @@
 prefer-no-csd
 
 hotkey-overlay {
-    off
+    skip-at-startup
 }
 
 environment {
@@ -106,7 +106,7 @@ window-rule {
     open-floating true
     default-floating-position x=200 y=100
     default-column-width { fixed 1200; }
-    default-window-height { fixed 800; }
+    default-window-height { fixed 600; }
 }
 
 window-rule {
@@ -273,3 +273,24 @@ binds {
 }
 
 animations
+
+
+window-rule {
+    match app-id=r#"^(pcmanfm|thunar|nautilus|eog|evince|file-roller|gparted|arandr|nitrogen|lxappearance|pavucontrol|blueman-manager|nm-connection-editor|org.gnome.Calculator|satty|com.github.hlissner.*)$"#
+    open-floating true
+}
+
+window-rule {
+    match title=r#"^(Copy|Move|Execute|Delete|Rename|Properties|About|Preferences|Settings|Organize Desktop|Add/Remove|New Folder|New File|Open With|Select|Browse|Search|Replace|Confirm|Error|Warning|Information|Question)$"#
+    open-floating true
+}
+
+window-rule {
+    match title=r#"^(Color Chooser|Font Selector|File Properties|Terminal Preferences)$"#
+    open-floating true
+}
+
+window-rule {
+    match app-id="org.mozilla.firefox" title="Picture-in-Picture"
+    open-floating true
+}
