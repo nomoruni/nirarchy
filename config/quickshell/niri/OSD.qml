@@ -8,7 +8,6 @@ PanelWindow {
 
     anchors {
         bottom: true
-        horizontalCenter: true
     }
 
     implicitWidth: 300
