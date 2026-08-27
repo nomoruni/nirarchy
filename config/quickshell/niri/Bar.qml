@@ -390,13 +390,13 @@ PanelWindow {
                 glyph: Indicators.audioGlyph()
                 tip: Sys.muted ? "Muted" : "Playing at " + Sys.volume + "%"
                 onClickAction: () => Actions.detached("nirarchy-launch-audio")
-                onRightClickAction: () => Actions.run("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
+                onRightClickAction: () => Actions.run("swayosd-client --output-volume mute-toggle")
                 onScrollUpAction: () => {
-                    Actions.run("wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05+");
+                    Actions.run("swayosd-client --output-volume raise");
                     Sys.audioProc.running = true;
                 }
                 onScrollDownAction: () => {
-                    Actions.run("wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05-");
+                    Actions.run("swayosd-client --output-volume lower");
                     Sys.audioProc.running = true;
                 }
             }

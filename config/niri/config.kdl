@@ -255,11 +255,11 @@ binds {
     XF86AudioMute allow-when-locked=true { spawn "swayosd-client" "--output-volume" "mute-toggle"; }
     Alt+XF86AudioRaiseVolume allow-when-locked=true { spawn "swayosd-client" "--output-volume" "+1"; }
     Alt+XF86AudioLowerVolume allow-when-locked=true { spawn "swayosd-client" "--output-volume" "-1"; }
-    XF86AudioMicMute allow-when-locked=true { spawn "pamixer" "--default-source" "-t"; }
-    XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "+5%"; }
-    XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "5%-"; }
-    Alt+XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "+1%"; }
-    Alt+XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "1%-"; }
+    XF86AudioMicMute allow-when-locked=true { spawn "swayosd-client" "--input-volume" "mute-toggle"; }
+    XF86MonBrightnessUp allow-when-locked=true { spawn "swayosd-client" "--brightness" "raise"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "swayosd-client" "--brightness" "lower"; }
+    Alt+XF86MonBrightnessUp allow-when-locked=true { spawn "swayosd-client" "--brightness" "+1"; }
+    Alt+XF86MonBrightnessDown allow-when-locked=true { spawn "swayosd-client" "--brightness" "-1"; }
     XF86AudioNext { spawn "playerctl" "next"; }
     XF86AudioPause { spawn "playerctl" "play-pause"; }
     XF86AudioPlay { spawn "playerctl" "play-pause"; }

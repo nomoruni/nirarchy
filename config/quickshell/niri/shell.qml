@@ -12,5 +12,4 @@ ShellRoot {
 
     ThemePicker {}
     PolkitDialog {}
-    OSD {}
 }
