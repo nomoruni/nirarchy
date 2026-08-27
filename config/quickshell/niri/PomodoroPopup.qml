@@ -228,6 +228,38 @@ PopupWindow {
                         onClicked: Pomodoro.reset()
                     }
                 }
+
+                // Reset All (sessions + timer)
+                Rectangle {
+                    width: 70
+                    height: 30
+                    radius: 0
+                    color: resetAllHover.containsMouse ? Theme.red : "transparent"
+                    border.color: Theme.dim
+                    border.width: 1
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "󰦖 Reset All"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 11
+                        color: resetAllHover.containsMouse ? Theme.bg : Theme.fg
+                    }
+
+                    HoverHandler {
+                        id: resetAllHover
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            Pomodoro.reset();
+                            Pomodoro.sessions = 0;
+                            Pomodoro.saveState();
+                        }
+                    }
+                }
             }
 
             // Settings
