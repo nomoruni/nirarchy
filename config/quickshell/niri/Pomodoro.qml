@@ -44,6 +44,20 @@ Singleton {
         return "Pomodoro";
     }
 
+    function notifyCompletion(finishedMode) {
+        if (finishedMode === "work") {
+            Quickshell.execDetached(["canberra-gtk-play", "--id=complete"]);
+            if (root.mode === "longbreak") {
+                Quickshell.execDetached(["notify-send", "Long Break time!", "Great job! You earned a well-deserved long break."]);
+            } else {
+                Quickshell.execDetached(["notify-send", "Break time!", "Pomodoro complete! Take a short break."]);
+            }
+        } else {
+            Quickshell.execDetached(["canberra-gtk-play", "--id=bell"]);
+            Quickshell.execDetached(["notify-send", "Break over", "Back to work! Time for the next pomodoro."]);
+        }
+    }
+
     function start() {
         if (running) {
             running = false;
@@ -137,7 +151,9 @@ Singleton {
                         const now = Date.now() / 1000;
                         root.remaining = Math.max(0, Math.round(root.endTimestamp - now));
                         if (root.remaining <= 0) {
+                            const finishedMode = root.mode;
                             root.advanceMode();
+                            root.notifyCompletion(finishedMode);
                             if (root.mode !== "idle") {
                                 root.endTimestamp = Date.now() / 1000 + root.remaining;
                                 root.running = true;
@@ -168,7 +184,9 @@ Singleton {
             const now = Date.now() / 1000;
             root.remaining = Math.max(0, Math.round(root.endTimestamp - now));
             if (root.remaining <= 0) {
+                const finishedMode = root.mode;
                 root.advanceMode();
+                root.notifyCompletion(finishedMode);
                 if (root.mode !== "idle") {
                     root.endTimestamp = Date.now() / 1000 + root.remaining;
                     root.running = true;
