@@ -96,6 +96,10 @@ Singleton {
 
     function saveState() {
         const data = JSON.stringify({
+            workDuration: workDuration,
+            breakDuration: breakDuration,
+            longBreakDuration: longBreakDuration,
+            sessionsBeforeLong: sessionsBeforeLong,
             mode: mode,
             remaining: remaining,
             sessions: sessions,
@@ -120,6 +124,10 @@ Singleton {
             onStreamFinished: {
                 try {
                     const data = JSON.parse(text.trim());
+                    if (data.workDuration) root.workDuration = data.workDuration;
+                    if (data.breakDuration) root.breakDuration = data.breakDuration;
+                    if (data.longBreakDuration) root.longBreakDuration = data.longBreakDuration;
+                    if (data.sessionsBeforeLong) root.sessionsBeforeLong = data.sessionsBeforeLong;
                     root.mode = data.mode || "idle";
                     root.remaining = data.remaining || 0;
                     root.sessions = data.sessions || 0;
@@ -140,6 +148,14 @@ Singleton {
                 } catch (e) {}
             }
         }
+    }
+
+    function setDurations(work, brk, lbrk, sessions) {
+        workDuration = work;
+        breakDuration = brk;
+        longBreakDuration = lbrk;
+        sessionsBeforeLong = sessions;
+        saveState();
     }
 
     Timer {

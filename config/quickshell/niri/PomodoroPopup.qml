@@ -9,8 +9,8 @@ PopupWindow {
     property var barWin
 
     visible: false
-    implicitWidth: 280
-    implicitHeight: 260
+    implicitWidth: 290
+    implicitHeight: 400
     color: "transparent"
     grabFocus: false
 
@@ -31,12 +31,12 @@ PopupWindow {
         Column {
             anchors.fill: parent
             anchors.margins: 14
-            spacing: 12
+            spacing: 8
 
             // Header
             Item {
                 width: parent.width
-                height: 28
+                height: 26
 
                 Text {
                     anchors.left: parent.left
@@ -81,7 +81,7 @@ PopupWindow {
             // Mode indicator
             Rectangle {
                 width: parent.width
-                height: 32
+                height: 30
                 radius: 0
                 color: Theme.bgLight
 
@@ -126,7 +126,7 @@ PopupWindow {
             // Timer display
             Rectangle {
                 width: parent.width
-                height: 70
+                height: 60
                 radius: 0
                 color: "transparent"
                 border.color: Pomodoro.running ? (Pomodoro.mode === "work" ? Theme.red : Theme.green) : Theme.dim
@@ -136,40 +136,21 @@ PopupWindow {
                     anchors.centerIn: parent
                     text: Pomodoro.running ? Pomodoro.formattedTime() : "--:--"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 36
+                    font.pixelSize: 34
                     font.bold: true
                     color: Pomodoro.running ? (Pomodoro.mode === "work" ? Theme.red : Theme.green) : Theme.dim
-                }
-            }
-
-            // Session dots
-            Row {
-                anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 8
-
-                Repeater {
-                    model: Pomodoro.sessionsBeforeLong
-
-                    Rectangle {
-                        width: 10
-                        height: 10
-                        radius: 0
-                        color: index < Pomodoro.sessions ? Theme.accent : Theme.bgLight
-                        border.color: Theme.dim
-                        border.width: 1
-                    }
                 }
             }
 
             // Controls
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 10
+                spacing: 8
 
                 // Start/Pause
                 Rectangle {
                     width: 80
-                    height: 32
+                    height: 30
                     radius: 0
                     color: startHover.containsMouse ? Theme.accent : Theme.bgLight
 
@@ -194,8 +175,8 @@ PopupWindow {
 
                 // Skip
                 Rectangle {
-                    width: 70
-                    height: 32
+                    width: 60
+                    height: 30
                     radius: 0
                     color: skipHover.containsMouse ? Theme.bgLight : "transparent"
                     border.color: Theme.dim
@@ -222,8 +203,8 @@ PopupWindow {
 
                 // Reset
                 Rectangle {
-                    width: 70
-                    height: 32
+                    width: 60
+                    height: 30
                     radius: 0
                     color: resetHover.containsMouse ? Theme.red : "transparent"
                     border.color: Theme.dim
@@ -248,17 +229,246 @@ PopupWindow {
                     }
                 }
             }
+
+            // Settings
+            Rectangle {
+                width: parent.width
+                height: 3
+                color: Theme.bgLight
+            }
+
+            Text {
+                text: "Durations (minutes)"
+                font.family: Theme.fontFamily
+                font.pixelSize: 13
+                font.bold: true
+                color: Theme.fg
+            }
+
+            // Work duration stepper
+            Item {
+                width: parent.width
+                height: 26
+
+                Text {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "󰔛 Work"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 12
+                    color: Theme.red
+                }
+
+                Row {
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 4
+
+                    StepBtn {
+                        text: "−"
+                        onDo: if (Pomodoro.workDuration > 1) { Pomodoro.workDuration = Pomodoro.workDuration - 60; Pomodoro.saveState(); }
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 34
+                        horizontalAlignment: Text.AlignHCenter
+                        text: Math.round(Pomodoro.workDuration / 60)
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 12
+                        color: Theme.fg
+                    }
+
+                    StepBtn {
+                        text: "+"
+                        onDo: { Pomodoro.workDuration = Pomodoro.workDuration + 60; Pomodoro.saveState(); }
+                    }
+                }
+            }
+
+            // Break duration stepper
+            Item {
+                width: parent.width
+                height: 26
+
+                Text {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "󰔠 Break"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 12
+                    color: Theme.green
+                }
+
+                Row {
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 4
+
+                    StepBtn {
+                        text: "−"
+                        onDo: if (Pomodoro.breakDuration > 1) { Pomodoro.breakDuration = Pomodoro.breakDuration - 60; Pomodoro.saveState(); }
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 34
+                        horizontalAlignment: Text.AlignHCenter
+                        text: Math.round(Pomodoro.breakDuration / 60)
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 12
+                        color: Theme.fg
+                    }
+
+                    StepBtn {
+                        text: "+"
+                        onDo: { Pomodoro.breakDuration = Pomodoro.breakDuration + 60; Pomodoro.saveState(); }
+                    }
+                }
+            }
+
+            // Long break duration stepper
+            Item {
+                width: parent.width
+                height: 26
+
+                Text {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "󰈸 Long Break"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 12
+                    color: Theme.yellow
+                }
+
+                Row {
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 4
+
+                    StepBtn {
+                        text: "−"
+                        onDo: if (Pomodoro.longBreakDuration > 1) { Pomodoro.longBreakDuration = Pomodoro.longBreakDuration - 60; Pomodoro.saveState(); }
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 34
+                        horizontalAlignment: Text.AlignHCenter
+                        text: Math.round(Pomodoro.longBreakDuration / 60)
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 12
+                        color: Theme.fg
+                    }
+
+                    StepBtn {
+                        text: "+"
+                        onDo: { Pomodoro.longBreakDuration = Pomodoro.longBreakDuration + 60; Pomodoro.saveState(); }
+                    }
+                }
+            }
+
+            // Sessions before long break stepper
+            Item {
+                width: parent.width
+                height: 26
+
+                Text {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "󰇚 Sessions"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 12
+                    color: Theme.accent
+                }
+
+                Row {
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 4
+
+                    StepBtn {
+                        text: "−"
+                        onDo: if (Pomodoro.sessionsBeforeLong > 2) { Pomodoro.sessionsBeforeLong = Pomodoro.sessionsBeforeLong - 1; Pomodoro.saveState(); }
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 34
+                        horizontalAlignment: Text.AlignHCenter
+                        text: Pomodoro.sessionsBeforeLong
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 12
+                        color: Theme.fg
+                    }
+
+                    StepBtn {
+                        text: "+"
+                        onDo: { Pomodoro.sessionsBeforeLong = Pomodoro.sessionsBeforeLong + 1; Pomodoro.saveState(); }
+                    }
+                }
+            }
+
+            // Session dots
+            Row {
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 8
+
+                Repeater {
+                    model: Pomodoro.sessionsBeforeLong
+
+                    Rectangle {
+                        width: 10
+                        height: 10
+                        radius: 0
+                        color: index < Pomodoro.sessions ? Theme.accent : Theme.bgLight
+                        border.color: Theme.dim
+                        border.width: 1
+                    }
+                }
+            }
+
+            IpcHandler {
+                target: "pomodoropopup"
+
+                function toggle(): void {
+                    if (popupRoot.visible) {
+                        popupRoot.visible = false;
+                        return;
+                    }
+                    popupRoot.openAt((popupRoot.barWin?.width ?? 800) - popupRoot.implicitWidth);
+                }
+            }
+        }
+    }
+
+    component StepBtn: Rectangle {
+        property string text: ""
+        property var onDo: null
+
+        width: 22
+        height: 22
+        radius: 0
+        color: stepHover.containsMouse ? Theme.accent : Theme.bgLight
+
+        Text {
+            anchors.centerIn: parent
+            text: parent.text
+            font.family: Theme.fontFamily
+            font.pixelSize: 14
+            color: stepHover.containsMouse ? Theme.bg : Theme.fg
         }
 
-        IpcHandler {
-            target: "pomodoropopup"
+        HoverHandler {
+            id: stepHover
+        }
 
-            function toggle(): void {
-                if (popupRoot.visible) {
-                    popupRoot.visible = false;
-                    return;
-                }
-                popupRoot.openAt((popupRoot.barWin?.width ?? 800) - popupRoot.implicitWidth);
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+                if (parent.onDo)
+                    parent.onDo();
             }
         }
     }
