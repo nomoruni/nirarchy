@@ -231,23 +231,17 @@ PopupWindow {
 
                 // Reset All (sessions + timer)
                 Rectangle {
-                    width: 70
+                    width: 30
                     height: 30
                     radius: 0
-                    color: resetAllHover.containsMouse ? Theme.red : "transparent"
-                    border.color: Theme.dim
-                    border.width: 1
+                    color: Theme.red
 
                     Text {
                         anchors.centerIn: parent
-                        text: "󰦖 Reset All"
+                        text: "󰦖"
                         font.family: Theme.fontFamily
-                        font.pixelSize: 11
-                        color: resetAllHover.containsMouse ? Theme.bg : Theme.fg
-                    }
-
-                    HoverHandler {
-                        id: resetAllHover
+                        font.pixelSize: 14
+                        color: Theme.bg
                     }
 
                     MouseArea {
