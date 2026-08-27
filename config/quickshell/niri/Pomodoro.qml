@@ -31,7 +31,7 @@ Singleton {
             return "󰔛";
         if (mode === "break" || mode === "longbreak")
             return "󰔠";
-        return "󰓈";
+        return "";
     }
 
     function modeLabel() {
