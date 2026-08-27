@@ -13,7 +13,7 @@ Item {
     function focusWs(ws) {
         if (ws === null || ws === undefined)
             return;
-        const arg = String(ws.id ?? (ws.idx + 1));
+        const arg = String(ws.idx);
         Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", arg]);
     }
 
