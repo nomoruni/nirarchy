@@ -298,7 +298,7 @@ PanelWindow {
             }
 
             BarButton {
-                glyph: "󰑋"
+                glyph: ""
                 tip: Indicators.recording ? "Recording — click to stop" : "Record screen\n\nRight-click for options"
                 dangerColor: Indicators.recording
                 accentColor: !Indicators.recording
