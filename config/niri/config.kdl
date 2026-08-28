@@ -293,7 +293,7 @@ window-rule {
 }
 
 window-rule {
-    match title=r#"^(Copy|Move|Execute|Delete|Rename|Properties|About|Preferences|Settings|Organize Desktop|Add/Remove|New Folder|New File|Open With|Select|Browse|Search|Replace|Confirm|Error|Warning|Information|Question)$"#
+    match title=r#"^(Copy|Move|Execute|Delete|Rename|Properties|About|Preferences|Settings|Organize Desktop|Add/Remove|New Folder|New File|Open With|Select|Browse|Search|Replace|Confirm|Error|Warning|Information|Question)( File)?$"#
     open-floating true
 }
 
