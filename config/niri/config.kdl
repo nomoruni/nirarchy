@@ -134,7 +134,8 @@ binds {
     Mod+F { maximize-column; }
     Mod+Shift+F { fullscreen-window; }
     Mod+T { toggle-window-floating; }
-    Mod+J { maximize-column; }
+    Mod+J { consume-or-expel-window-left; }
+    Mod+K { consume-or-expel-window-right; }
     Mod+O { switch-preset-column-width; }
     Ctrl+Alt+Delete { spawn "nirarchy-close-all-windows"; }
 
@@ -180,6 +181,12 @@ binds {
     Mod+Shift+Right { move-column-right; }
     Mod+Shift+Up { move-window-up; }
     Mod+Shift+Down { move-window-down; }
+    Mod+Shift+H { move-column-left; }
+    Mod+Shift+L { move-column-right; }
+
+    // Move windows to workspaces
+    Mod+Shift+J { move-window-to-workspace-down; }
+    Mod+Shift+K { move-window-to-workspace-up; }
 
     // Column sizing (Omarchy resize keys)
     Mod+Minus { set-column-width "-10%"; }
@@ -203,7 +210,7 @@ binds {
     Mod+Space { spawn "nirarchy-launch-walker"; }
     Mod+Alt+Space { spawn "nirarchy-menu"; }
     Mod+Escape { spawn "nirarchy-menu" "system"; }
-    Mod+Shift+K { spawn "nirarchy-menu-keybindings"; }
+    Mod+Alt+K { spawn "nirarchy-menu-keybindings"; }
     Mod+V { spawn "nirarchy-launch-walker" "-m" "clipboard"; }
     Mod+Ctrl+E { spawn "nirarchy-launch-walker" "-m" "symbols"; }
     Mod+Ctrl+C { spawn "nirarchy-menu" "capture"; }

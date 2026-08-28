@@ -13,7 +13,7 @@ SUPER + Shift + N → Editor (Helix)
 SUPER + Space → App launcher (Walker)
 SUPER + Alt + Space → Nirarchy menu
 SUPER + Escape → System menu
-SUPER + Shift + K → This keybinding list
+SUPER + Alt + K → This keybinding list
 SUPER + V → Clipboard history
 SUPER + Ctrl + E → Emoji / symbol picker
 SUPER + Ctrl + C → Capture menu
@@ -23,7 +23,8 @@ SUPER + Q → Close window
 SUPER + F → Maximize column
 SUPER + Shift + F → Fullscreen window
 SUPER + T → Toggle floating / tiling
-SUPER + J → Maximize column
+SUPER + J → Stack window left (horizontal split)
+SUPER + K → Stack window right (horizontal split)
 SUPER + O → Switch preset column width
 SUPER + BracketLeft → Consume window left
 SUPER + BracketRight → Consume window right
@@ -61,6 +62,8 @@ SUPER + Shift + Left / H → Move column left
 SUPER + Shift + Right / L → Move column right
 SUPER + Shift + Up → Move window up
 SUPER + Shift + Down → Move window down
+SUPER + Shift + J → Move window to next workspace
+SUPER + Shift + K → Move window to previous workspace
 SUPER + Ctrl + Left → Consume left
 SUPER + Ctrl + Right → Consume right
 SUPER + Ctrl + Up → Consume up
