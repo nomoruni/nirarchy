@@ -23,8 +23,8 @@ SUPER + Q → Close window
 SUPER + F → Maximize column
 SUPER + Shift + F → Fullscreen window
 SUPER + T → Toggle floating / tiling
-SUPER + J → Stack window left (horizontal split)
-SUPER + K → Stack window right (horizontal split)
+SUPER + J → Focus window down
+SUPER + K → Focus window up
 SUPER + O → Switch preset column width
 SUPER + BracketLeft → Consume window left
 SUPER + BracketRight → Consume window right
@@ -62,8 +62,10 @@ SUPER + Shift + Left / H → Move column left
 SUPER + Shift + Right / L → Move column right
 SUPER + Shift + Up → Move window up
 SUPER + Shift + Down → Move window down
-SUPER + Shift + J → Move window to next workspace
-SUPER + Shift + K → Move window to previous workspace
+SUPER + Shift + J → Stack window left (horizontal split)
+SUPER + Shift + K → Stack window right (horizontal split)
+SUPER + Ctrl + J → Move window to next workspace
+SUPER + Ctrl + K → Move window to previous workspace
 SUPER + Ctrl + Left → Consume left
 SUPER + Ctrl + Right → Consume right
 SUPER + Ctrl + Up → Consume up

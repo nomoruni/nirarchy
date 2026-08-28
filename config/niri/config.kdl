@@ -134,8 +134,8 @@ binds {
     Mod+F { maximize-column; }
     Mod+Shift+F { fullscreen-window; }
     Mod+T { toggle-window-floating; }
-    Mod+J { consume-or-expel-window-left; }
-    Mod+K { consume-or-expel-window-right; }
+    Mod+J { focus-window-down; }
+    Mod+K { focus-window-up; }
     Mod+O { switch-preset-column-width; }
     Ctrl+Alt+Delete { spawn "nirarchy-close-all-windows"; }
 
@@ -183,10 +183,12 @@ binds {
     Mod+Shift+Down { move-window-down; }
     Mod+Shift+H { move-column-left; }
     Mod+Shift+L { move-column-right; }
+    Mod+Shift+J { consume-or-expel-window-left; }
+    Mod+Shift+K { consume-or-expel-window-right; }
 
     // Move windows to workspaces
-    Mod+Shift+J { move-window-to-workspace-down; }
-    Mod+Shift+K { move-window-to-workspace-up; }
+    Mod+Ctrl+J { move-window-to-workspace-down; }
+    Mod+Ctrl+K { move-window-to-workspace-up; }
 
     // Column sizing (Omarchy resize keys)
     Mod+Minus { set-column-width "-10%"; }
