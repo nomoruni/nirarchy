@@ -286,7 +286,7 @@ animations
 
 
 window-rule {
-    match app-id=r#"^(pcmanfm|thunar|nautilus|eog|evince|file-roller|gparted|arandr|nitrogen|lxappearance|pavucontrol|blueman-manager|nm-connection-editor|org.gnome.Calculator|satty|com.github.hlissner.*)$"#
+    match app-id=r#"^(xarchiver|eog|evince|file-roller|gparted|arandr|nitrogen|lxappearance|pavucontrol|blueman-manager|nm-connection-editor|org.gnome.Calculator|satty|com.github.hlissner.*)$"#
     open-floating true
 }
 
