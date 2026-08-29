@@ -1,0 +1,28 @@
+# printbar configuration — EPSON L3250 (USB via CUPS)
+
+[printer.office]
+cups = "EPSON_L3250_Series"   # CUPS queue name (USB printer)
+timeout = 4
+
+[printer.office.bar]
+format = "\U000f042a {supply_min}%"
+on_missing = "hide"
+
+[printer.office.tooltip]
+items = ["model", "status", "alerts", "display", "supplies", "paper", "jobs"]
+on_missing = "hide"
+max_rows = 12
+tooltip_font = "JetBrainsMono Nerd Font, JetBrainsMono Nerd Font Mono, monospace"
+
+[printer.office.thresholds]
+supply_low = 15
+supply_critical = 5
+
+[printer.office.actions]
+on_click_right = "queue"
+# EPSON L3250 series is USB-only, so EWS may not be available.
+# on_click = "ews"
+
+[printer.office.notify]
+enabled = true
+events = ["jam", "supply_low", "offline"]
