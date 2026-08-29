@@ -33,6 +33,17 @@ PopupWindow {
             closed();
     }
 
+    Component.onCompleted: refresh()
+
+    Timer {
+        id: autoRefreshTimer
+
+        interval: 15000
+        repeat: true
+        running: popupRoot.visible
+        onTriggered: popupRoot.refresh()
+    }
+
     readonly property Process printProc: Process {
         command: ["printbar", popupRoot.printerName, "--json"]
         stdout: StdioCollector {
