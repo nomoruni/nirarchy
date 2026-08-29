@@ -387,6 +387,32 @@ PanelWindow {
             }
 
             BarButton {
+                id: printerBtn
+
+                visible: printerPopup.printerData !== null
+                glyph: "󰥻"
+                accentColor: bar.printerBtnOpen
+                tip: {
+                    if (!printerPopup.printerData) return "Printer";
+                    var s = printerPopup.printerData.status || "unknown";
+                    var jobs = printerPopup.printerData.jobs || 0;
+                    return (printerPopup.printerData.model || "Printer") + " — " + s + (jobs > 0 ? "\n" + jobs + " jobs" : "");
+                }
+                dangerColor: printerPopup.printerData && (printerPopup.printerData.state === "critical" || printerPopup.printerData.state === "offline")
+                onClickAction: () => {
+                    if (printerPopup.visible) {
+                        printerPopup.visible = false;
+                        return;
+                    }
+                    const px = mapToItem(bar.contentItem, 0, 0).x;
+                    btPopup.visible = false;
+                    netPopup.visible = false;
+                    bar.printerBtnOpen = true;
+                    printerPopup.openAt(px);
+                }
+            }
+
+            BarButton {
                 id: wifiBtn
 
                 glyph: Sys.netIcon
@@ -468,7 +494,15 @@ PanelWindow {
         onClosed: pomoBtnOpen = false
     }
 
+    PrintPopup {
+        id: printerPopup
+
+        barWin: bar
+        onClosed: printerBtnOpen = false
+    }
+
     property bool wifiBtnOpen: false
     property bool btBtnOpen: false
     property bool pomoBtnOpen: false
+    property bool printerBtnOpen: false
 }
