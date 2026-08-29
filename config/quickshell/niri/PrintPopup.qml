@@ -7,15 +7,18 @@ PopupWindow {
     id: popupRoot
 
     property var barWin
-    property var printerData: null
+    property string printerStatus: "unknown"
+    property string printerModel: "Printer"
+    property string printerDevice: ""
     property var jobs: []
-    property string printerName: "office"
 
     visible: false
     implicitWidth: 380
     implicitHeight: 500
     color: "transparent"
     grabFocus: false
+
+    property string printerQueue: "EPSON_L3250_Series"
 
     function openAt(x) {
         anchor.window = barWin ?? null;
@@ -26,13 +29,13 @@ PopupWindow {
     }
 
     function refresh() {
-        printProc.running = true;
+        statusProc.running = true;
         jobsProc.running = true;
     }
 
     function cancelJob(jobId) {
         Actions.run("cancel " + jobId);
-        refreshTimer.restart();
+        Qt.callLater(function() { refresh(); });
     }
 
     onVisibleChanged: {
@@ -42,30 +45,29 @@ PopupWindow {
 
     Component.onCompleted: refresh()
 
-    Timer {
-        id: autoRefreshTimer
-
-        interval: 15000
-        repeat: true
-        running: popupRoot.visible
-        onTriggered: popupRoot.refresh()
-    }
-
-    readonly property Process printProc: Process {
-        command: ["printbar", popupRoot.printerName, "--json"]
+    readonly property Process statusProc: Process {
+        command: ["sh", "-c",
+            "echo $(lpstat -p " + printerQueue + " 2>/dev/null); " +
+            "echo $(lpstat -l -p " + printerQueue + " 2>/dev/null | grep -i 'Description:' | sed 's/.*Description:\\s*//'); " +
+            "echo $(lpstat -p " + printerQueue + " -v 2>/dev/null | sed 's/.*device for .*: //')"]
         stdout: StdioCollector {
             onStreamFinished: {
-                try {
-                    popupRoot.printerData = JSON.parse(text.trim());
-                } catch (e) {
-                    popupRoot.printerData = null;
-                }
+                const lines = text.trim().split("\n");
+                const statusLine = lines[0] || "";
+                if (statusLine.includes("idle")) popupRoot.printerStatus = "idle";
+                else if (statusLine.includes("printing")) popupRoot.printerStatus = "printing";
+                else if (statusLine.includes("stopped")) popupRoot.printerStatus = "stopped";
+                else if (statusLine.includes("disabled")) popupRoot.printerStatus = "offline";
+                else popupRoot.printerStatus = "unknown";
+
+                popupRoot.printerModel = lines[1]?.trim() || "EPSON L3250 Series";
+                popupRoot.printerDevice = lines[2]?.trim() || "";
             }
         }
     }
 
     readonly property Process jobsProc: Process {
-        command: ["sh", "-c", "lpstat -W not-completed 2>/dev/null | grep -i 'EPSON_L3250_Series' || true"]
+        command: ["sh", "-c", "lpstat -W not-completed 2>/dev/null | grep -i '" + printerQueue + "' || true"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const rows = [];
@@ -73,14 +75,13 @@ PopupWindow {
                 for (let i = 0; i < lines.length; i++) {
                     if (!lines[i])
                         continue;
-                    const m = lines[i].match(/^([^\s-]+)-(\d+)\s+(\S+)\s+(.*)$/);
-                    if (m) {
+                    const p = lines[i].trim().split(/\s+/);
+                    if (p.length >= 3) {
                         rows.push({
-                            "printer": m[1],
-                            "id": m[2],
-                            "user": m[3],
-                            "detail": m[4],
-                            "full": lines[i]
+                            "id": p[0].split("-").pop(),
+                            "user": p[1],
+                            "size": p[2],
+                            "date": p.slice(3).join(" ")
                         });
                     }
                 }
@@ -89,25 +90,16 @@ PopupWindow {
         }
     }
 
-    Timer {
-        id: refreshTimer
-
-        interval: 4000
-        repeat: false
-        onTriggered: popupRoot.refresh()
+    function statusIcon() {
+        return "";
     }
 
-    function stateColor(state) {
-        if (state === "ok") return Theme.green;
-        if (state === "warn") return Theme.yellow;
-        if (state === "critical") return Theme.red;
-        if (state === "offline") return Theme.dim;
+    function statusColor() {
+        if (printerStatus === "idle") return Theme.green;
+        if (printerStatus === "printing") return Theme.accent;
+        if (printerStatus === "stopped") return Theme.yellow;
+        if (printerStatus === "offline") return Theme.red;
         return Theme.dim;
-    }
-
-    function supplyLevel(supply) {
-        if (!supply || supply.level_pct === undefined) return "?%";
-        return Math.round(supply.level_pct) + "%";
     }
 
     Rectangle {
@@ -155,9 +147,7 @@ PopupWindow {
                         color: Theme.fg
                     }
 
-                    HoverHandler {
-                        id: refreshHover
-                    }
+                    HoverHandler { id: refreshHover }
 
                     MouseArea {
                         anchors.fill: parent
@@ -184,9 +174,7 @@ PopupWindow {
                         color: closeHover.containsMouse ? Theme.bg : Theme.fg
                     }
 
-                    HoverHandler {
-                        id: closeHover
-                    }
+                    HoverHandler { id: closeHover }
 
                     MouseArea {
                         anchors.fill: parent
@@ -207,14 +195,10 @@ PopupWindow {
                     anchors.left: parent.left
                     anchors.leftMargin: 10
                     anchors.verticalCenter: parent.verticalCenter
-                    text: {
-                        if (!popupRoot.printerData) return "Loading...";
-                        var s = popupRoot.printerData.status || "unknown";
-                        return "󰤨  " + (popupRoot.printerData.model || popupRoot.printerName) + " — " + s;
-                    }
+                    text: statusIcon() + "  " + printerModel + " — " + printerStatus
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
-                    color: popupRoot.printerData ? popupRoot.stateColor(popupRoot.printerData.state) : Theme.dim
+                    color: statusColor()
                     elide: Text.ElideRight
                     width: parent.width - 100
                 }
@@ -238,7 +222,6 @@ PopupWindow {
 
                     MouseArea {
                         id: queueMouse
-
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
@@ -247,94 +230,38 @@ PopupWindow {
                 }
             }
 
-            // Supplies
+            // Device
             Text {
-                visible: popupRoot.printerData && popupRoot.printerData.supplies && popupRoot.printerData.supplies.length > 0
-                text: "Supplies"
+                visible: printerDevice !== ""
+                width: parent.width
+                text: printerDevice.length > 60 ? printerDevice.substring(0, 57) + "..." : printerDevice
+                font.family: Theme.fontFamily
+                font.pixelSize: 10
+                color: Theme.dim
+                elide: Text.ElideRight
+            }
+
+            // Active Jobs
+            Text {
+                width: parent.width
+                text: "Active Jobs" + (jobs.length > 0 ? " (" + jobs.length + ")" : "")
                 font.family: Theme.fontFamily
                 font.pixelSize: 12
                 font.bold: true
                 color: Theme.fg
             }
 
-            Repeater {
-                model: popupRoot.printerData ? (popupRoot.printerData.supplies || []) : []
-
-                delegate: Rectangle {
-                    width: parent.width
-                    height: 28
-                    radius: 0
-                    color: "transparent"
-
-                    Row {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 8
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 8
-
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: modelData.colorant || modelData.name || "?"
-                            font.family: Theme.fontFamily
-                            font.pixelSize: 11
-                            color: Theme.fg
-                            width: 60
-                        }
-
-                        Rectangle {
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 120
-                            height: 10
-                            radius: 0
-                            color: Theme.bgLight
-
-                            Rectangle {
-                                width: Math.max(0, Math.min(1, (modelData.level_pct || 0) / 100)) * parent.width
-                                height: parent.height
-                                radius: 0
-                                color: popupRoot.stateColor(modelData.state)
-                            }
-                        }
-
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: popupRoot.supplyLevel(modelData)
-                            font.family: Theme.fontFamily
-                            font.pixelSize: 11
-                            color: popupRoot.stateColor(modelData.state)
-                        }
-                    }
-                }
-            }
-
-            // Jobs
             Text {
+                visible: jobs.length === 0
                 width: parent.width
-                text: "Active Jobs" + (popupRoot.jobs.length > 0 ? " (" + popupRoot.jobs.length + ")" : "")
+                text: printerStatus === "printing" ? "Printing..." : "No active jobs"
                 font.family: Theme.fontFamily
-                font.pixelSize: 12
-                font.bold: true
-                color: Theme.fg
-            }
-
-            Item {
-                visible: popupRoot.jobs.length === 0
-                width: parent.width
-                height: 24
-
-                Text {
-                    anchors.left: parent.left
-                    anchors.leftMargin: 8
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "No active jobs"
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 11
-                    color: Theme.dim
-                }
+                font.pixelSize: 11
+                color: printerStatus === "printing" ? Theme.accent : Theme.dim
             }
 
             Repeater {
-                model: popupRoot.jobs
+                model: jobs
 
                 delegate: Rectangle {
                     id: jobRow
@@ -354,7 +281,7 @@ PopupWindow {
 
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "󰗲"
+                            text: "󰈙"
                             font.family: Theme.fontFamily
                             font.pixelSize: 13
                             color: Theme.accent
@@ -364,7 +291,7 @@ PopupWindow {
                             anchors.verticalCenter: parent.verticalCenter
                             width: 180
                             elide: Text.ElideMiddle
-                            text: "#" + jobRow.modelData.id + " · " + jobRow.modelData.detail
+                            text: "#" + jobRow.modelData.id + " · " + jobRow.modelData.user
                             font.family: Theme.fontFamily
                             font.pixelSize: 11
                             color: Theme.fg
@@ -372,7 +299,7 @@ PopupWindow {
 
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "󰂆 " + jobRow.modelData.user
+                            text: jobRow.modelData.size + "B"
                             font.family: Theme.fontFamily
                             font.pixelSize: 10
                             color: Theme.dim
@@ -398,7 +325,6 @@ PopupWindow {
 
                         MouseArea {
                             id: cancelMouse
-
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
@@ -406,27 +332,11 @@ PopupWindow {
                         }
                     }
 
-                    HoverHandler {
-                        id: jobHover
-                    }
+                    HoverHandler { id: jobHover }
                 }
             }
 
-            // Display text
-            Text {
-                visible: popupRoot.printerData && popupRoot.printerData.display && popupRoot.printerData.display !== ""
-                width: parent.width
-                text: popupRoot.printerData ? popupRoot.printerData.display : ""
-                font.family: Theme.fontFamily
-                font.pixelSize: 11
-                color: Theme.dim
-                wrapMode: Text.Wrap
-            }
-
-            Item {
-                width: 1
-                height: parent.height > 200 ? 10 : 0
-            }
+            Item { width: 1; height: 10 }
         }
 
         IpcHandler {

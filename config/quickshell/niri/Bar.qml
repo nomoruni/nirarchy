@@ -389,16 +389,11 @@ PanelWindow {
             BarButton {
                 id: printerBtn
 
-                visible: printerPopup.printerData !== null
-                glyph: ""
+                visible: printerPopup.printerStatus !== "unknown"
+                glyph: printerPopup.statusIcon()
                 accentColor: bar.printerBtnOpen
-                tip: {
-                    if (!printerPopup.printerData) return "Printer";
-                    var s = printerPopup.printerData.status || "unknown";
-                    var jobs = printerPopup.printerData.jobs || 0;
-                    return (printerPopup.printerData.model || "Printer") + " — " + s + (jobs > 0 ? "\n" + jobs + " jobs" : "");
-                }
-                dangerColor: printerPopup.printerData && (printerPopup.printerData.state === "critical" || printerPopup.printerData.state === "offline")
+                tip: printerPopup.printerModel + " — " + printerPopup.printerStatus + (printerPopup.jobs.length > 0 ? "\n" + printerPopup.jobs.length + " jobs" : "")
+                dangerColor: printerPopup.printerStatus === "offline" || printerPopup.printerStatus === "stopped"
                 onClickAction: () => {
                     if (printerPopup.visible) {
                         printerPopup.visible = false;
