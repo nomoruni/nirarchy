@@ -65,7 +65,7 @@ PopupWindow {
     }
 
     readonly property Process jobsProc: Process {
-        command: ["sh", "-c", "lpstat -W all 2>/dev/null | grep -i 'EPSON_L3250_Series' || true"]
+        command: ["sh", "-c", "lpstat -W not-completed 2>/dev/null | grep -i 'EPSON_L3250_Series' || true"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const rows = [];
