@@ -8,11 +8,12 @@ PopupWindow {
 
     property var barWin
     property var printerData: null
+    property var jobs: []
     property string printerName: "office"
 
     visible: false
     implicitWidth: 380
-    implicitHeight: 400
+    implicitHeight: 500
     color: "transparent"
     grabFocus: false
 
@@ -26,6 +27,12 @@ PopupWindow {
 
     function refresh() {
         printProc.running = true;
+        jobsProc.running = true;
+    }
+
+    function cancelJob(jobId) {
+        Actions.run("cancel " + jobId);
+        refreshTimer.restart();
     }
 
     onVisibleChanged: {
@@ -55,6 +62,39 @@ PopupWindow {
                 }
             }
         }
+    }
+
+    readonly property Process jobsProc: Process {
+        command: ["sh", "-c", "lpstat -o -W all 2>/dev/null | grep -i 'EPSON_L3250_Series' || true"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const rows = [];
+                const lines = text.trim().split("\n");
+                for (let i = 0; i < lines.length; i++) {
+                    if (!lines[i])
+                        continue;
+                    const m = lines[i].match(/^([^\s-]+)-(\d+)\s+(\S+)\s+(.*)$/);
+                    if (m) {
+                        rows.push({
+                            "printer": m[1],
+                            "id": m[2],
+                            "user": m[3],
+                            "detail": m[4],
+                            "full": lines[i]
+                        });
+                    }
+                }
+                popupRoot.jobs = rows;
+            }
+        }
+    }
+
+    Timer {
+        id: refreshTimer
+
+        interval: 4000
+        repeat: false
+        onTriggered: popupRoot.refresh()
     }
 
     function stateColor(state) {
@@ -269,12 +309,107 @@ PopupWindow {
 
             // Jobs
             Text {
-                visible: popupRoot.printerData && popupRoot.printerData.jobs > 0
-                text: "Jobs: " + (popupRoot.printerData ? popupRoot.printerData.jobs : 0)
+                width: parent.width
+                text: "Active Jobs" + (popupRoot.jobs.length > 0 ? " (" + popupRoot.jobs.length + ")" : "")
                 font.family: Theme.fontFamily
                 font.pixelSize: 12
                 font.bold: true
-                color: Theme.accent
+                color: Theme.fg
+            }
+
+            Item {
+                visible: popupRoot.jobs.length === 0
+                width: parent.width
+                height: 24
+
+                Text {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 8
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "No active jobs"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 11
+                    color: Theme.dim
+                }
+            }
+
+            Repeater {
+                model: popupRoot.jobs
+
+                delegate: Rectangle {
+                    id: jobRow
+
+                    required property var modelData
+
+                    width: parent.width
+                    height: 34
+                    radius: 0
+                    color: jobHover.containsMouse ? Theme.bgLight : "transparent"
+
+                    Row {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 8
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "󰗲"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 13
+                            color: Theme.accent
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 180
+                            elide: Text.ElideMiddle
+                            text: "#" + jobRow.modelData.id + " · " + jobRow.modelData.detail
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 11
+                            color: Theme.fg
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "󰂆 " + jobRow.modelData.user
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 10
+                            color: Theme.dim
+                        }
+                    }
+
+                    Rectangle {
+                        anchors.right: parent.right
+                        anchors.rightMargin: 6
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 60
+                        height: 22
+                        radius: 0
+                        color: cancelMouse.containsMouse ? Theme.red : Theme.bgLight
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "Cancel"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 10
+                            color: cancelMouse.containsMouse ? Theme.bg : Theme.fg
+                        }
+
+                        MouseArea {
+                            id: cancelMouse
+
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: popupRoot.cancelJob(jobRow.modelData.id)
+                        }
+                    }
+
+                    HoverHandler {
+                        id: jobHover
+                    }
+                }
             }
 
             // Display text
