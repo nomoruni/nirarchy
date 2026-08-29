@@ -390,7 +390,7 @@ PanelWindow {
                 id: printerBtn
 
                 visible: printerPopup.printerData !== null
-                glyph: "󰥻"
+                glyph: ""
                 accentColor: bar.printerBtnOpen
                 tip: {
                     if (!printerPopup.printerData) return "Printer";
