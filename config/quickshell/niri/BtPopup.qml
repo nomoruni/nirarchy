@@ -330,7 +330,14 @@ PopupWindow {
                                     else
                                         popupRoot.pairDev(devRow.modelData);
                                 }
+                                onPressed: devAct.parent.parent.scale = 0.92
+                                onReleased: devAct.parent.parent.scale = 1.0
+                                onCanceled: devAct.parent.parent.scale = 1.0
                             }
+
+                    Behavior on scale {
+                        NumberAnimation { duration: 100; easing.type: Easing.OutQuad }
+                    }
                         }
                     }
 
@@ -340,6 +347,13 @@ PopupWindow {
                         anchors.fill: parent
                         hoverEnabled: true
                         onClicked: {}
+                        onPressed: devRow.scale = 0.96
+                        onReleased: devRow.scale = 1.0
+                        onCanceled: devRow.scale = 1.0
+                    }
+
+                    Behavior on scale {
+                        NumberAnimation { duration: 100; easing.type: Easing.OutQuad }
                     }
                 }
 

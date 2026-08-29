@@ -51,7 +51,7 @@ PopupWindow {
     }
 
     readonly property Process listProc: Process {
-        command: ["sh", "-c", "nmcli -t -f IN-USE,SIGNAL,SSID,SECURITY device wifi list --rescan no 2>/dev/null | awk -F: '$3 != \"\"' | sort -t: -k2,2rn | awk -F: '!seen[$3]++'"]
+        command: ["sh", "-c", "nmcli -t -f IN-USE,SIGNAL,SSID,SECURITY,FREQ device wifi list --rescan no 2>/dev/null | awk -F: '$3 != \"\"' | sort -t: -k2,2rn | awk -F: '!seen[$3]++'"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const rows = [];
@@ -60,11 +60,17 @@ PopupWindow {
                     if (!lines[i])
                         continue;
                     const p = lines[i].split(":");
+                    var freqLabel = "";
+                    if (p[4]) {
+                        var mhz = parseInt(p[4]) || 0;
+                        freqLabel = mhz >= 5000 ? "5" : "2.4";
+                    }
                     rows.push({
                         "inUse": p[0] === "*",
                         "signal": parseInt(p[1]) || 0,
                         "ssid": p[2],
-                        "secured": p[3] !== "" && p[3] !== "--"
+                        "secured": p[3] !== "" && p[3] !== "--",
+                        "freq": freqLabel
                     });
                 }
                 popupRoot.networks = rows;
@@ -285,6 +291,13 @@ PopupWindow {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: popupRoot.disconnectCurrent()
+                        onPressed: discMouse.parent.scale = 0.92
+                        onReleased: discMouse.parent.scale = 1.0
+                        onCanceled: discMouse.parent.scale = 1.0
+                    }
+
+                    Behavior on scale {
+                        NumberAnimation { duration: 100; easing.type: Easing.OutQuad }
                     }
                 }
             }
@@ -302,7 +315,7 @@ PopupWindow {
                     required property var modelData
 
                     width: ListView.view.width
-                    height: 32
+                    height: 40
                     radius: 0
                     color: netMouse.containsMouse ? Theme.bgLight : "transparent"
 
@@ -322,12 +335,21 @@ PopupWindow {
 
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            width: 230
+                            width: 180
                             elide: Text.ElideRight
                             text: netRow.modelData.ssid
                             font.family: Theme.fontFamily
                             font.pixelSize: 13
                             color: netRow.modelData.inUse ? Theme.green : Theme.fg
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: netRow.modelData.freq ? netRow.modelData.freq + "G" : ""
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 10
+                            font.bold: true
+                            color: netRow.modelData.freq === "5" ? Theme.accent : Theme.dim
                         }
 
                         Text {
@@ -346,6 +368,13 @@ PopupWindow {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: popupRoot.connectTo(netRow.modelData)
+                        onPressed: netRow.scale = 0.96
+                        onReleased: netRow.scale = 1.0
+                        onCanceled: netRow.scale = 1.0
+                    }
+
+                    Behavior on scale {
+                        NumberAnimation { duration: 100; easing.type: Easing.OutQuad }
                     }
                 }
 
