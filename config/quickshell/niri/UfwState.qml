@@ -103,7 +103,10 @@ Singleton {
     readonly property Process ufwProc: Process {
         stdout: StdioCollector {
             onStreamFinished: {
-                root.lastOutput = text.trim();
+                let out = text.trim().split("\n");
+                out = out.filter(l => !/\(v6\)$/.test(l.trim()));
+                const joined = out.join("\n");
+                root.lastOutput = /^ERROR|^Error|Invalid|Bad|failed/i.test(joined) ? joined : "";
                 refresh();
             }
         }

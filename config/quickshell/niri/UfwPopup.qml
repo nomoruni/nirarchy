@@ -22,6 +22,9 @@ PanelWindow {
         popupRoot.showAddRule = false;
         popupRoot.addPort = "";
         popupRoot.addFrom = "";
+        portField.text = "";
+        fromField.text = "";
+        UfwState.lastOutput = "";
     }
 
     visible: false
