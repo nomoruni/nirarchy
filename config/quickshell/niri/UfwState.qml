@@ -14,9 +14,13 @@ Singleton {
     property string defaultIncoming: "deny"
     property string defaultOutgoing: "allow"
     property string lastOutput: ""
+    property bool needsRefresh: false
 
     function refresh() {
-        statusProc.running = false;
+        if (statusProc.running) {
+            needsRefresh = true;
+            return;
+        }
         statusProc.running = true;
     }
 
@@ -96,6 +100,10 @@ Singleton {
                 }
                 root.rules = newRules;
                 root.loaded = true;
+                if (root.needsRefresh) {
+                    root.needsRefresh = false;
+                    statusProc.running = true;
+                }
             }
         }
     }
