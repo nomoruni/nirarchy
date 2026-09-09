@@ -268,6 +268,21 @@ PanelWindow {
             spacing: 2
 
             BarButton {
+                glyph: "󰈴"
+                accentColor: bar.ufwBtnOpen
+                dangerColor: UfwState.loaded && !UfwState.enabled
+                tip: "Firewall — " + (UfwState.enabled ? "active" : "inactive") + "\n\nLeft-click: manage rules\nRight-click: open panel"
+                onClickAction: () => {
+                    if (ufwPopup.visible) {
+                        ufwPopup.visible = false;
+                        return;
+                    }
+                    const px = mapToItem(bar.contentItem, 0, 0).x;
+                    ufwPopup.openAt(px);
+                }
+            }
+
+            BarButton {
                 visible: true
                 glyph: Pomodoro.modeIcon()
                 label: Pomodoro.running ? Pomodoro.formattedTime() : ""
@@ -489,6 +504,13 @@ PanelWindow {
         onClosed: pomoBtnOpen = false
     }
 
+    UfwPopup {
+        id: ufwPopup
+
+        barWin: bar
+        onClosed: ufwBtnOpen = false
+    }
+
     PrintPopup {
         id: printerPopup
 
@@ -499,5 +521,6 @@ PanelWindow {
     property bool wifiBtnOpen: false
     property bool btBtnOpen: false
     property bool pomoBtnOpen: false
+    property bool ufwBtnOpen: false
     property bool printerBtnOpen: false
 }

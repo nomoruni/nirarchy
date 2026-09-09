@@ -13,4 +13,5 @@ ShellRoot {
     ThemePicker {}
     PolkitDialog {}
     PrintPopup {}
+    UfwPopup {}
 }
