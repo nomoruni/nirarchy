@@ -1,12 +1,14 @@
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
 import QtQuick
 import QtQuick.Controls
 
-PopupWindow {
+PanelWindow {
     id: popupRoot
 
     property var barWin
+    property real openX: 0
     property string addPort: ""
     property string addProto: "tcp"
     property string addFrom: ""
@@ -23,15 +25,23 @@ PopupWindow {
     }
 
     visible: false
-    implicitWidth: 400
-    implicitHeight: showAddRule ? 568 : 440
     color: "transparent"
-    grabFocus: true
+    exclusionMode: ExclusionMode.Ignore
+    WlrLayershell.layer: WlrLayer.Top
+    WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.namespace: "nirarchy-ufw"
+    implicitWidth: 1920
+    implicitHeight: 1080
+
+    anchors {
+        top: true
+        left: true
+        right: true
+        bottom: true
+    }
 
     function openAt(x) {
-        anchor.window = barWin ?? null;
-        anchor.rect.x = Math.max(0, Math.min(x - 20, (barWin?.width ?? 1000) - implicitWidth - 8));
-        anchor.rect.y = Theme.barHeight + 6;
+        popupRoot.openX = x ?? 800;
         visible = true;
         UfwState.refresh();
     }
@@ -41,8 +51,18 @@ PopupWindow {
             closed();
     }
 
-    Rectangle {
+    MouseArea {
         anchors.fill: parent
+        onClicked: popupRoot.visible = false
+    }
+
+    Rectangle {
+        id: contentBox
+
+        x: Math.max(0, Math.min(popupRoot.openX - 20, popupRoot.width - 408))
+        y: Theme.barHeight + 6
+        width: 400
+        height: popupRoot.showAddRule ? 568 : 440
         radius: 0
         color: Theme.bg
         border.color: Theme.accent
@@ -123,7 +143,6 @@ PopupWindow {
                 }
             }
 
-            // Status bar
             Rectangle {
                 width: parent.width
                 height: 34
@@ -168,7 +187,6 @@ PopupWindow {
                 }
             }
 
-            // Defaults
             Row {
                 spacing: 20
 
@@ -187,7 +205,6 @@ PopupWindow {
                 }
             }
 
-            // Rules header
             Text {
                 text: "Rules (" + UfwState.rules.length + ")"
                 font.family: Theme.fontFamily
@@ -196,10 +213,9 @@ PopupWindow {
                 color: Theme.fg
             }
 
-            // Rules list
             ListView {
                 width: parent.width
-                height: popupRoot.showAddRule ? 80 : Math.max(100, popupRoot.height - 260)
+                height: popupRoot.showAddRule ? 80 : 220
                 clip: true
                 spacing: 2
                 model: UfwState.rules
@@ -275,7 +291,6 @@ PopupWindow {
                 }
             }
 
-            // Add rule button
             Rectangle {
                 width: parent.width
                 height: 30
@@ -300,7 +315,6 @@ PopupWindow {
                 }
             }
 
-            // Add rule form
             Column {
                 visible: popupRoot.showAddRule
                 width: parent.width
@@ -318,8 +332,6 @@ PopupWindow {
                     spacing: 4
 
                     Rectangle {
-                        id: allowSeg
-
                         width: (parent.width - 8) / 3
                         height: 26
                         radius: 0
@@ -345,8 +357,6 @@ PopupWindow {
                     }
 
                     Rectangle {
-                        id: denySeg
-
                         width: (parent.width - 8) / 3
                         height: 26
                         radius: 0
@@ -372,8 +382,6 @@ PopupWindow {
                     }
 
                     Rectangle {
-                        id: rejectSeg
-
                         width: (parent.width - 8) / 3
                         height: 26
                         radius: 0
@@ -425,8 +433,6 @@ PopupWindow {
                         color: Theme.fg
                         selectionColor: Theme.accent
                         clip: true
-                        focus: true
-                        activeFocusOnTab: true
 
                         onTextChanged: popupRoot.addPort = text
                         Keys.onReturnPressed: popupRoot.confirmAdd()
@@ -558,8 +564,6 @@ PopupWindow {
                         color: Theme.fg
                         selectionColor: Theme.accent
                         clip: true
-                        focus: true
-                        activeFocusOnTab: true
 
                         onTextChanged: popupRoot.addFrom = text
                         Keys.onReturnPressed: popupRoot.confirmAdd()
@@ -604,17 +608,17 @@ PopupWindow {
                 }
             }
         }
+    }
 
-        IpcHandler {
-            target: "ufw"
+    IpcHandler {
+        target: "ufw"
 
-            function toggle(): void {
-                if (popupRoot.visible) {
-                    popupRoot.visible = false;
-                    return;
-                }
-                popupRoot.openAt((popupRoot.barWin?.width ?? 800) - popupRoot.implicitWidth);
+        function toggle(): void {
+            if (popupRoot.visible) {
+                popupRoot.visible = false;
+                return;
             }
+            popupRoot.openAt();
         }
     }
 }
