@@ -13,21 +13,23 @@ Singleton {
     property string logging: "off"
     property string defaultIncoming: "deny"
     property string defaultOutgoing: "allow"
+    property string lastOutput: ""
 
     function refresh() {
+        statusProc.running = false;
         statusProc.running = true;
     }
 
     function toggleUfw() {
         if (enabled)
-            runUfw("disable");
+            runUfw("sudo ufw disable");
         else
-            runUfw("enable");
+            runUfw("sudo ufw enable");
     }
 
     function addRule(action, port, protocol, from) {
         let cmd = "sudo ufw " + action + " " + port;
-        if (protocol !== "")
+        if (protocol === "tcp" || protocol === "udp")
             cmd += "/" + protocol;
         if (from !== "")
             cmd += " from " + from;
@@ -100,7 +102,10 @@ Singleton {
 
     readonly property Process ufwProc: Process {
         stdout: StdioCollector {
-            onStreamFinished: refresh()
+            onStreamFinished: {
+                root.lastOutput = text.trim();
+                refresh();
+            }
         }
     }
 }

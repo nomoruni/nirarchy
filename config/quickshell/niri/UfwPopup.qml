@@ -62,7 +62,7 @@ PanelWindow {
         x: Math.max(0, Math.min(popupRoot.openX - 20, popupRoot.width - 408))
         y: Theme.barHeight + 6
         width: 400
-        height: popupRoot.showAddRule ? 568 : 440
+        height: popupRoot.showAddRule ? 600 : 440
         radius: 0
         color: Theme.bg
         border.color: Theme.accent
@@ -313,6 +313,16 @@ PanelWindow {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: popupRoot.showAddRule = !popupRoot.showAddRule
                 }
+            }
+
+            Text {
+                visible: UfwState.lastOutput !== ""
+                width: parent.width
+                wrapMode: Text.Wrap
+                text: UfwState.lastOutput
+                font.family: Theme.fontFamily
+                font.pixelSize: 10
+                color: UfwState.lastOutput.startsWith("ERROR") ? Theme.red : Theme.dim
             }
 
             Column {
