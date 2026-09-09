@@ -269,7 +269,7 @@ PanelWindow {
 
             // === UFW START ===
             BarButton {
-                glyph: "󰈴"
+                glyph: "󱨑"
                 accentColor: bar.ufwBtnOpen
                 dangerColor: UfwState.loaded && !UfwState.enabled
                 tip: "Firewall — " + (UfwState.enabled ? "active" : "inactive") + "\n\nLeft-click: manage rules\nRight-click: open panel"
