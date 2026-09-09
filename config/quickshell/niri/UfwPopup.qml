@@ -1,9 +1,10 @@
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
 import QtQuick
 import QtQuick.Controls
 
-PopupWindow {
+PanelWindow {
     id: popupRoot
 
     property var barWin
@@ -24,14 +25,18 @@ PopupWindow {
 
     visible: false
     implicitWidth: 400
-    implicitHeight: showAddRule ? 568 : 440
+    implicitHeight: (showAddRule ? 568 : 440) + Theme.barHeight + 6
     color: "transparent"
-    grabFocus: true
+    exclusionMode: ExclusionMode.Ignore
+    WlrLayershell.layer: WlrLayer.Top
+    WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.namespace: "nirarchy-ufw"
 
+    anchors {
+        top: true
+        right: true
+    }
     function openAt(x) {
-        anchor.window = barWin ?? null;
-        anchor.rect.x = Math.max(0, Math.min(x - 20, (barWin?.width ?? 1000) - implicitWidth - 8));
-        anchor.rect.y = Theme.barHeight + 6;
         visible = true;
         UfwState.refresh();
     }
@@ -41,8 +46,14 @@ PopupWindow {
             closed();
     }
 
+    MouseArea {
+        anchors.fill: parent
+        onClicked: popupRoot.visible = false
+    }
+
     Rectangle {
         anchors.fill: parent
+        anchors.topMargin: Theme.barHeight + 6
         radius: 0
         color: Theme.bg
         border.color: Theme.accent
@@ -609,7 +620,7 @@ PopupWindow {
                     popupRoot.visible = false;
                     return;
                 }
-                popupRoot.openAt((popupRoot.barWin?.width ?? 800) - popupRoot.implicitWidth);
+                popupRoot.openAt();
             }
         }
     }
