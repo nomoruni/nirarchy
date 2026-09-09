@@ -224,7 +224,8 @@ PopupWindow {
                             anchors.verticalCenter: parent.verticalCenter
                             width: 220
                             elide: Text.ElideRight
-                            text: ruleRow.modelData.action + "  " + ruleRow.modelData.to + (ruleRow.modelData.from !== "" ? " from " + ruleRow.modelData.from : "")
+                            text: ruleRow.modelData.action + " " + ruleRow.modelData.to
+                                  + (ruleRow.modelData.from !== "" && ruleRow.modelData.from !== "Anywhere" ? " from " + ruleRow.modelData.from : "")
                             font.family: Theme.fontFamily
                             font.pixelSize: 11
                             color: Theme.fg

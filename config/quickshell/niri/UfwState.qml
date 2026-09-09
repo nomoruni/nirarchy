@@ -53,30 +53,46 @@ Singleton {
             onStreamFinished: {
                 const lines = text.trim().split("\n");
                 root.enabled = lines[0]?.includes("active") || false;
-                root.rules = [];
-                let i = 1;
-                while (i < lines.length) {
-                    const l = lines[i].trim();
-                    if (l.startsWith("Default:")) {
-                        const parts = l.replace("Default:", "").trim().split(/\s+/);
-                        root.defaultIncoming = parts[0] || "deny";
-                        root.defaultOutgoing = parts[1] || "allow";
-                    } else if (l.startsWith("Logging:")) {
-                        root.logging = l.replace("Logging:", "").trim().split(/\s+/)[0] || "off";
-                    } else if (l && !l.startsWith("---") && !l.startsWith("To") && !l.startsWith("Skipping")) {
-                        const p = l.split(/\s+/);
-                        if (p.length >= 3) {
-                            root.rules.push({
-                                "num": root.rules.length + 1,
-                                "to": p[0],
-                                "action": p[1],
-                                "from": p[2],
-                                "details": p.slice(3).join(" ")
-                            });
-                        }
+                const newRules = [];
+                for (const raw of lines) {
+                    const l = raw.trim();
+                    if (!l)
+                        continue;
+                    const logMatch = l.match(/^Logging:\s+(\S+)/);
+                    if (logMatch) {
+                        root.logging = logMatch[1];
+                        continue;
                     }
-                    i++;
+                    const def = l.match(/^Default:\s+(deny|allow|reject)\s*\(incoming\),\s*(deny|allow|reject)\s*\(outgoing\)/);
+                    if (def) {
+                        root.defaultIncoming = def[1];
+                        root.defaultOutgoing = def[2];
+                        continue;
+                    }
+                    if (l.startsWith("Status:")
+                        || l.startsWith("New profiles:")
+                        || l.startsWith("Skipping")
+                        || l.startsWith("To")
+                        || l.startsWith("--"))
+                        continue;
+                    const p = l.split(/\s+/);
+                    if (p[0] === "Anywhere" && /^\(v[46]\)$/.test(p[1] || "")) {
+                        p[0] = "Anywhere " + p[1];
+                        p.splice(1, 1);
+                    }
+                    if (p.length >= 4
+                        && /^(ALLOW|DENY|REJECT|LIMIT)$/.test(p[1])
+                        && /^(IN|OUT|FWD|IN,OUT|IN,FWD|FWD,OUT|IN,OUT,FWD)$/.test(p[2])) {
+                        newRules.push({
+                            "num": newRules.length + 1,
+                            "to": p[0],
+                            "action": p[1],
+                            "from": p[3],
+                            "details": p.slice(4).join(" ")
+                        });
+                    }
                 }
+                root.rules = newRules;
                 root.loaded = true;
             }
         }
