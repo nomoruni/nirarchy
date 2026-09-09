@@ -41,7 +41,9 @@ Singleton {
     }
 
     function deleteRule(num) {
-        runUfw("sudo ufw delete " + num);
+        const ids = String(num).split(",").map(s => s.trim()).filter(s => s !== "");
+        const cmds = ids.map(id => "printf 'y\\n' | sudo ufw delete " + id).join(" && ");
+        runUfw(cmds);
     }
 
     function reload() {
@@ -54,7 +56,7 @@ Singleton {
     }
 
     readonly property Process statusProc: Process {
-        command: ["sh", "-c", "sudo ufw status verbose 2>&1"]
+        command: ["sh", "-c", "sudo ufw status numbered 2>&1"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const lines = text.trim().split("\n");
@@ -81,7 +83,14 @@ Singleton {
                         || l.startsWith("To")
                         || l.startsWith("--"))
                         continue;
-                    const p = l.split(/\s+/);
+                    const rm = l.match(/^\[([0-9,\s]+)\]\s+(.+)$/);
+                    let ruleText = l;
+                    let ruleNum = "";
+                    if (rm) {
+                        ruleNum = rm[1].replace(/\s+/g, "");
+                        ruleText = rm[2];
+                    }
+                    const p = ruleText.split(/\s+/);
                     if (p[0] === "Anywhere" && /^\(v[46]\)$/.test(p[1] || "")) {
                         p[0] = "Anywhere " + p[1];
                         p.splice(1, 1);
@@ -90,9 +99,10 @@ Singleton {
                         && /^(ALLOW|DENY|REJECT|LIMIT)$/.test(p[1])
                         && /^(IN|OUT|FWD|IN,OUT|IN,FWD|FWD,OUT|IN,OUT,FWD)$/.test(p[2])) {
                         newRules.push({
-                            "num": newRules.length + 1,
+                            "num": ruleNum !== "" ? ruleNum : String(newRules.length + 1),
                             "to": p[0],
                             "action": p[1],
+                            "direction": p[2],
                             "from": p[3],
                             "details": p.slice(4).join(" ")
                         });
