@@ -11,12 +11,22 @@ PopupWindow {
     property string addProto: "tcp"
     property string addFrom: ""
     property string addAction: "allow"
+    property bool showAddRule: false
+
+    function confirmAdd() {
+        if (popupRoot.addPort.trim() === "")
+            return;
+        UfwState.addRule(popupRoot.addAction, popupRoot.addPort.trim(), popupRoot.addProto, popupRoot.addFrom.trim());
+        popupRoot.showAddRule = false;
+        popupRoot.addPort = "";
+        popupRoot.addFrom = "";
+    }
 
     visible: false
     implicitWidth: 400
     implicitHeight: 440
     color: "transparent"
-    grabFocus: false
+    grabFocus: true
 
     function openAt(x) {
         anchor.window = barWin ?? null;
@@ -30,8 +40,6 @@ PopupWindow {
         if (!visible)
             closed();
     }
-
-    property bool showAddRule: false
 
     Rectangle {
         anchors.fill: parent
@@ -298,46 +306,272 @@ PopupWindow {
                 width: parent.width
                 spacing: 8
 
+                Text {
+                    text: "Action"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 11
+                    color: Theme.dim
+                }
+
                 Row {
-                    spacing: 8
+                    width: parent.width
+                    spacing: 4
 
-                    ComboBox {
-                        id: actionCombo
-                        width: 80
-                        model: ["allow", "deny", "reject"]
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 11
-                        currentIndex: 0
-                        onCurrentTextChanged: popupRoot.addAction = currentText
+                    Rectangle {
+                        id: allowSeg
+
+                        width: (parent.width - 8) / 3
+                        height: 26
+                        radius: 0
+                        border.color: popupRoot.addAction === "allow" ? Theme.green : Theme.dim
+                        border.width: 1
+                        color: popupRoot.addAction === "allow" ? Theme.green : Theme.bg
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "ALLOW"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: popupRoot.addAction === "allow" ? Theme.bg : Theme.fg
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: popupRoot.addAction = "allow"
+                        }
                     }
 
-                    TextField {
-                        id: portField
-                        width: 100
-                        placeholderText: "Port"
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 11
-                        onTextChanged: popupRoot.addPort = text
+                    Rectangle {
+                        id: denySeg
+
+                        width: (parent.width - 8) / 3
+                        height: 26
+                        radius: 0
+                        border.color: popupRoot.addAction === "deny" ? Theme.red : Theme.dim
+                        border.width: 1
+                        color: popupRoot.addAction === "deny" ? Theme.red : Theme.bg
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "DENY"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: popupRoot.addAction === "deny" ? Theme.bg : Theme.fg
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: popupRoot.addAction = "deny"
+                        }
                     }
 
-                    ComboBox {
-                        id: protoCombo
-                        width: 70
-                        model: ["tcp", "udp", "both"]
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 11
-                        currentIndex: 0
-                        onCurrentTextChanged: popupRoot.addProto = currentText
+                    Rectangle {
+                        id: rejectSeg
+
+                        width: (parent.width - 8) / 3
+                        height: 26
+                        radius: 0
+                        border.color: popupRoot.addAction === "reject" ? Theme.yellow : Theme.dim
+                        border.width: 1
+                        color: popupRoot.addAction === "reject" ? Theme.yellow : Theme.bg
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "REJECT"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: popupRoot.addAction === "reject" ? Theme.bg : Theme.fg
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: popupRoot.addAction = "reject"
+                        }
                     }
                 }
 
-                TextField {
-                    id: fromField
-                    width: parent.width
-                    placeholderText: "From (optional, e.g. 192.168.1.0/24)"
+                Text {
+                    text: "Port or range"
                     font.family: Theme.fontFamily
                     font.pixelSize: 11
-                    onTextChanged: popupRoot.addFrom = text
+                    color: Theme.dim
+                }
+
+                Rectangle {
+                    width: parent.width
+                    height: 32
+                    radius: 0
+                    color: Theme.bg
+                    border.color: portField.activeFocus ? Theme.accent : Theme.dim
+                    border.width: 1
+
+                    TextInput {
+                        id: portField
+
+                        anchors.fill: parent
+                        anchors.margins: 8
+                        verticalAlignment: TextInput.AlignVCenter
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 12
+                        color: Theme.fg
+                        selectionColor: Theme.accent
+                        clip: true
+
+                        onTextChanged: popupRoot.addPort = text
+                        Keys.onReturnPressed: popupRoot.confirmAdd()
+                        Keys.onEnterPressed: popupRoot.confirmAdd()
+                    }
+
+                    Text {
+                        visible: !portField.text && !portField.activeFocus
+                        text: "e.g. 22, 80, 8080-8090"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 12
+                        color: Theme.dim
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.leftMargin: 8
+                    }
+                }
+
+                Text {
+                    text: "Protocol"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 11
+                    color: Theme.dim
+                }
+
+                Row {
+                    width: parent.width
+                    spacing: 4
+
+                    Rectangle {
+                        width: (parent.width - 8) / 3
+                        height: 26
+                        radius: 0
+                        border.color: popupRoot.addProto === "tcp" ? Theme.accent : Theme.dim
+                        border.width: 1
+                        color: popupRoot.addProto === "tcp" ? Theme.accent : Theme.bg
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "TCP"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: popupRoot.addProto === "tcp" ? Theme.bg : Theme.fg
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: popupRoot.addProto = "tcp"
+                        }
+                    }
+
+                    Rectangle {
+                        width: (parent.width - 8) / 3
+                        height: 26
+                        radius: 0
+                        border.color: popupRoot.addProto === "udp" ? Theme.accent : Theme.dim
+                        border.width: 1
+                        color: popupRoot.addProto === "udp" ? Theme.accent : Theme.bg
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "UDP"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: popupRoot.addProto === "udp" ? Theme.bg : Theme.fg
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: popupRoot.addProto = "udp"
+                        }
+                    }
+
+                    Rectangle {
+                        width: (parent.width - 8) / 3
+                        height: 26
+                        radius: 0
+                        border.color: popupRoot.addProto === "both" ? Theme.accent : Theme.dim
+                        border.width: 1
+                        color: popupRoot.addProto === "both" ? Theme.accent : Theme.bg
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "BOTH"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: popupRoot.addProto === "both" ? Theme.bg : Theme.fg
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: popupRoot.addProto = "both"
+                        }
+                    }
+                }
+
+                Text {
+                    text: "From (optional)"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 11
+                    color: Theme.dim
+                }
+
+                Rectangle {
+                    width: parent.width
+                    height: 32
+                    radius: 0
+                    color: Theme.bg
+                    border.color: fromField.activeFocus ? Theme.accent : Theme.dim
+                    border.width: 1
+
+                    TextInput {
+                        id: fromField
+
+                        anchors.fill: parent
+                        anchors.margins: 8
+                        verticalAlignment: TextInput.AlignVCenter
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 12
+                        color: Theme.fg
+                        selectionColor: Theme.accent
+                        clip: true
+
+                        onTextChanged: popupRoot.addFrom = text
+                        Keys.onReturnPressed: popupRoot.confirmAdd()
+                        Keys.onEnterPressed: popupRoot.confirmAdd()
+                    }
+
+                    Text {
+                        visible: !fromField.text && !fromField.activeFocus
+                        text: "e.g. 192.168.1.0/24 (leave empty for Anywhere)"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 12
+                        color: Theme.dim
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.leftMargin: 8
+                    }
                 }
 
                 Rectangle {
@@ -348,7 +582,7 @@ PopupWindow {
 
                     Text {
                         anchors.centerIn: parent
-                        text: "Confirm"
+                        text: "Add Rule"
                         font.family: Theme.fontFamily
                         font.pixelSize: 12
                         font.bold: true
@@ -361,16 +595,7 @@ PopupWindow {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (popupRoot.addPort === "")
-                                return;
-                            UfwState.addRule(popupRoot.addAction, popupRoot.addPort, popupRoot.addProto, popupRoot.addFrom);
-                            popupRoot.showAddRule = false;
-                            popupRoot.addPort = "";
-                            popupRoot.addFrom = "";
-                            portField.text = "";
-                            fromField.text = "";
-                        }
+                        onClicked: popupRoot.confirmAdd()
                     }
                 }
             }
