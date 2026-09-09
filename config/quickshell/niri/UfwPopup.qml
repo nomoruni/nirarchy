@@ -24,7 +24,7 @@ PopupWindow {
 
     visible: false
     implicitWidth: 400
-    implicitHeight: 440
+    implicitHeight: showAddRule ? 568 : 440
     color: "transparent"
     grabFocus: true
 
@@ -199,7 +199,7 @@ PopupWindow {
             // Rules list
             ListView {
                 width: parent.width
-                height: Math.max(100, popupRoot.height - 260)
+                height: popupRoot.showAddRule ? 80 : Math.max(100, popupRoot.height - 260)
                 clip: true
                 spacing: 2
                 model: UfwState.rules
