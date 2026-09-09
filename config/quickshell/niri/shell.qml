@@ -13,5 +13,7 @@ ShellRoot {
     ThemePicker {}
     PolkitDialog {}
     PrintPopup {}
+    // === UFW START ===
     UfwPopup {}
+    // === UFW END ===
 }

@@ -26,7 +26,7 @@ Singleton {
     }
 
     function addRule(action, port, protocol, from) {
-        let cmd = "pkexec ufw " + action + " " + port;
+        let cmd = "sudo ufw " + action + " " + port;
         if (protocol !== "")
             cmd += "/" + protocol;
         if (from !== "")
@@ -35,11 +35,11 @@ Singleton {
     }
 
     function deleteRule(num) {
-        runUfw("pkexec ufw delete " + num);
+        runUfw("sudo ufw delete " + num);
     }
 
     function reload() {
-        runUfw("pkexec ufw reload");
+        runUfw("sudo ufw reload");
     }
 
     function runUfw(cmd) {
@@ -48,7 +48,7 @@ Singleton {
     }
 
     readonly property Process statusProc: Process {
-        command: ["sh", "-c", "pkexec ufw status verbose 2>&1"]
+        command: ["sh", "-c", "sudo ufw status verbose 2>&1"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const lines = text.trim().split("\n");

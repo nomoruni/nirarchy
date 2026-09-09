@@ -267,6 +267,7 @@ PanelWindow {
             anchors.centerIn: parent
             spacing: 2
 
+            // === UFW START ===
             BarButton {
                 glyph: "󰈴"
                 accentColor: bar.ufwBtnOpen
@@ -281,6 +282,7 @@ PanelWindow {
                     ufwPopup.openAt(px);
                 }
             }
+            // === UFW END ===
 
             BarButton {
                 visible: true
@@ -504,12 +506,14 @@ PanelWindow {
         onClosed: pomoBtnOpen = false
     }
 
+    // === UFW START ===
     UfwPopup {
         id: ufwPopup
 
         barWin: bar
         onClosed: ufwBtnOpen = false
     }
+    // === UFW END ===
 
     PrintPopup {
         id: printerPopup
@@ -521,6 +525,8 @@ PanelWindow {
     property bool wifiBtnOpen: false
     property bool btBtnOpen: false
     property bool pomoBtnOpen: false
+    // === UFW START ===
     property bool ufwBtnOpen: false
+    // === UFW END ===
     property bool printerBtnOpen: false
 }

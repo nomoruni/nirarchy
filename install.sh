@@ -60,6 +60,23 @@ KBD_VARIANT=${KBD_VARIANT:-us-intl}
 ok "Keyboard variant: $KBD_VARIANT"
 
 # ----------------------------------------------------------------------------
+say "UFW firewall manager (optional)"
+echo "  The bar can include a graphical UFW firewall manager (enable/disable,"
+echo "  allow/deny ports, delete rules). It needs the ufw package and uses"
+echo "  sudo to change rules."
+echo ""
+echo "  Install the UFW firewall manager? [y/N]"
+read -r INSTALL_UFW
+INSTALL_UFW=$(echo "${INSTALL_UFW:-n}" | tr '[:upper:]' '[:lower:]')
+if [[ "$INSTALL_UFW" == "y" || "$INSTALL_UFW" == "yes" ]]; then
+  INSTALL_UFW=true
+  ok "UFW manager will be installed"
+else
+  INSTALL_UFW=false
+  ok "UFW manager skipped"
+fi
+
+# ----------------------------------------------------------------------------
 if ! $NO_PKG; then
   say "Installing repo packages (pacman)"
   sudo pacman -S --needed --noconfirm \
@@ -78,6 +95,12 @@ if ! $NO_PKG; then
     papirus-icon-theme \
     xwayland-satellite inxi expac python-pillow
   ok "repo packages"
+
+  if $INSTALL_UFW; then
+    say "Installing UFW (pacman)"
+    sudo pacman -S --needed --noconfirm ufw
+    ok "ufw package"
+  fi
 
   say "Installing AUR packages (paru)"
   if ! command -v paru >/dev/null 2>&1; then
@@ -130,6 +153,12 @@ fi
 backup "$HOME/.config/quickshell/niri"
 mkdir -p "$HOME/.config/quickshell/niri"
 cp "$REPO_DIR/config/quickshell/niri/"*.qml "$HOME/.config/quickshell/niri/"
+if ! $INSTALL_UFW; then
+  rm -f "$HOME/.config/quickshell/niri/UfwState.qml" "$HOME/.config/quickshell/niri/UfwPopup.qml"
+  sed -i '/\/\/ === UFW START ===/,/\/\/ === UFW END ===/d' \
+    "$HOME/.config/quickshell/niri/Bar.qml" \
+    "$HOME/.config/quickshell/niri/shell.qml"
+fi
 
 # hypr (lock/idle only — does not touch a real Hyprland install)
 mkdir -p "$HOME/.config/hypr"
@@ -197,6 +226,26 @@ cp "$REPO_DIR/data/nirarchy-menu-icon.png" "$HOME/.local/share/nirarchy/"
 cp -r "$REPO_DIR/data/default/sddm/nirarchy" "$HOME/.local/share/nirarchy/default/sddm/"
 ok "scripts and data"
 
+# ----------------------------------------------------------------------------
+if $INSTALL_UFW; then
+  say "UFW sudoers rule"
+  echo "  The UFW manager runs 'sudo ufw ...'. To avoid a password prompt"
+  echo "  every time you change a rule, a NOPASSWD sudoers rule can be added:"
+  echo "      $USER ALL=(root) NOPASSWD: /usr/bin/ufw"
+  echo ""
+  echo "  Add this passwordless sudoers rule? [y/N]"
+  read -r UFW_SUDOERS
+  UFW_SUDOERS=$(echo "${UFW_SUDOERS:-n}" | tr '[:upper:]' '[:lower:]')
+  if [[ "$UFW_SUDOERS" == "y" || "$UFW_SUDOERS" == "yes" ]]; then
+    sudo sh -c "echo '$USER ALL=(root) NOPASSWD: /usr/bin/ufw' > /etc/sudoers.d/ufw && \
+      chown root:root /etc/sudoers.d/ufw && chmod 440 /etc/sudoers.d/ufw"
+    sudo visudo -cf /etc/sudoers.d/ufw
+    ok "passwordless sudo rule added for ufw"
+  else
+    ok "sudo will prompt for your password on rule changes"
+  fi
+fi
+
 # opencode skills (only if opencode config exists or user opts in by presence of dir)
 if [[ -d $HOME/.config/opencode ]]; then
   mkdir -p "$HOME/.config/opencode/skills"
@@ -218,6 +267,11 @@ if ! $NO_SERVICES; then
   systemctl enable --now tlp.service 2>/dev/null || true
   systemctl enable --now tlp-pd.service 2>/dev/null || true
   systemctl disable --now power-profiles-daemon.service 2>/dev/null || true
+
+  if $INSTALL_UFW; then
+    sudo systemctl enable --now ufw.service 2>/dev/null || true
+    ok "ufw service"
+  fi
 
   # iwd as NetworkManager's wifi backend (needed for impala)
   if ! grep -q 'wifi.backend' /etc/NetworkManager/conf.d/wifi-backend.conf 2>/dev/null; then
