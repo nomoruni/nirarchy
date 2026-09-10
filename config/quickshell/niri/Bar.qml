@@ -267,6 +267,24 @@ PanelWindow {
             anchors.centerIn: parent
             spacing: 2
 
+// === VPN START ===
+            BarButton {
+                glyph: "󰖂"
+                accentColor: bar.vpnBtnOpen
+                dangerColor: VpnState.connected
+                tip: "VPN — " + (VpnState.connected ? "connected to " + VpnState.server : "disconnected") + "\n\nLeft-click: toggle connection\nRight-click: open panel"
+                onClickAction: () => VpnState.toggle()
+                onRightClickAction: () => {
+                    if (vpnPopup.visible) {
+                        vpnPopup.visible = false;
+                        return;
+                    }
+                    const px = mapToItem(bar.contentItem, 0, 0).x;
+                    vpnPopup.openAt(px);
+                }
+            }
+            // === VPN END ===
+
             // === UFW START ===
             BarButton {
                 glyph: "󱨑"
@@ -506,6 +524,15 @@ PanelWindow {
         onClosed: pomoBtnOpen = false
     }
 
+    // === VPN START ===
+    VpnPopup {
+        id: vpnPopup
+
+        barWin: bar
+        onClosed: vpnBtnOpen = false
+    }
+    // === VPN END ===
+
     // === UFW START ===
     UfwPopup {
         id: ufwPopup
@@ -525,6 +552,9 @@ PanelWindow {
     property bool wifiBtnOpen: false
     property bool btBtnOpen: false
     property bool pomoBtnOpen: false
+    // === VPN START ===
+    property bool vpnBtnOpen: false
+    // === VPN END ===
     // === UFW START ===
     property bool ufwBtnOpen: false
     // === UFW END ===

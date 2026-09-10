@@ -60,6 +60,22 @@ KBD_VARIANT=${KBD_VARIANT:-us-intl}
 ok "Keyboard variant: $KBD_VARIANT"
 
 # ----------------------------------------------------------------------------
+say "ProtonVPN manager (optional)"
+echo "  The bar can include a graphical ProtonVPN manager (connect/disconnect,"
+echo "  view server info). It needs the protonvpn-cli package."
+echo ""
+echo "  Install the ProtonVPN manager? [y/N]"
+read -r INSTALL_VPN
+INSTALL_VPN=$(echo "${INSTALL_VPN:-n}" | tr '[:upper:]' '[:lower:]')
+if [[ "$INSTALL_VPN" == "y" || "$INSTALL_VPN" == "yes" ]]; then
+  INSTALL_VPN=true
+  ok "ProtonVPN manager will be installed"
+else
+  INSTALL_VPN=false
+  ok "ProtonVPN manager skipped"
+fi
+
+# ----------------------------------------------------------------------------
 say "UFW firewall manager (optional)"
 echo "  The bar can include a graphical UFW firewall manager (enable/disable,"
 echo "  allow/deny ports, delete rules). It needs the ufw package and uses"
@@ -100,6 +116,12 @@ if ! $NO_PKG; then
     say "Installing UFW (pacman)"
     sudo pacman -S --needed --noconfirm ufw
     ok "ufw package"
+  fi
+
+  if $INSTALL_VPN; then
+    say "Installing protonvpn-cli (paru)"
+    paru -S --needed --noconfirm protonvpn-cli
+    ok "protonvpn-cli package"
   fi
 
   say "Installing AUR packages (paru)"
@@ -156,6 +178,13 @@ cp "$REPO_DIR/config/quickshell/niri/"*.qml "$HOME/.config/quickshell/niri/"
 if ! $INSTALL_UFW; then
   rm -f "$HOME/.config/quickshell/niri/UfwState.qml" "$HOME/.config/quickshell/niri/UfwPopup.qml"
   sed -i '/\/\/ === UFW START ===/,/\/\/ === UFW END ===/d' \
+    "$HOME/.config/quickshell/niri/Bar.qml" \
+    "$HOME/.config/quickshell/niri/shell.qml"
+fi
+
+if ! $INSTALL_VPN; then
+  rm -f "$HOME/.config/quickshell/niri/VpnState.qml" "$HOME/.config/quickshell/niri/VpnPopup.qml"
+  sed -i '/\/\/ === VPN START ===/,/\/\/ === VPN END ===/d' \
     "$HOME/.config/quickshell/niri/Bar.qml" \
     "$HOME/.config/quickshell/niri/shell.qml"
 fi
