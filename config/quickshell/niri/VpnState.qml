@@ -13,6 +13,7 @@ Singleton {
     property string protocol: ""
     property string lastOutput: ""
     property bool needsRefresh: false
+    property bool busy: false
 
     function refresh() {
         if (statusProc.running) {
@@ -38,6 +39,7 @@ Singleton {
     }
 
     function runCmd(cmd) {
+        root.busy = true;
         cmdProc.command = ["sh", "-c", cmd + " 2>&1"];
         cmdProc.running = true;
     }
@@ -55,7 +57,7 @@ Singleton {
                     const l = raw.trim();
                     const stMatch = l.match(/^Status:\s*(.*)$/);
                     if (stMatch) {
-                        root.connected = /connected/i.test(stMatch[1]);
+                        root.connected = /^connected$/i.test(stMatch[1].trim());
                         continue;
                     }
                     const srvMatch = l.match(/^Server:\s*(.*)$/);
@@ -84,8 +86,11 @@ Singleton {
     readonly property Process cmdProc: Process {
         stdout: StdioCollector {
             onStreamFinished: {
+                root.busy = false;
                 let out = text.trim().split("\n");
-                out = out.filter(l => !l.startsWith("Server list") && !/^Updated/.test(l.trim()));
+                out = out.filter(l => !l.startsWith("Server list")
+                                       && !/^Updated/.test(l.trim())
+                                       && !/^Exception|^Traceback|SystemExit|asyncio/.test(l));
                 const joined = out.join("\n").trim();
                 root.lastOutput = /^ERROR|^Error|failed|error/i.test(joined) ? joined : "";
                 refresh();

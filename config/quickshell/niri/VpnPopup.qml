@@ -32,6 +32,13 @@ PanelWindow {
         VpnState.refresh();
     }
 
+    Timer {
+        interval: 20000
+        running: popupRoot.visible
+        repeat: true
+        onTriggered: VpnState.refresh()
+    }
+
     onVisibleChanged: {
         if (!visible)
             closed();
@@ -113,10 +120,10 @@ PanelWindow {
                     anchors.left: parent.left
                     anchors.leftMargin: 10
                     anchors.verticalCenter: parent.verticalCenter
-                    text: VpnState.connected ? "  Connected" : "  Disconnected"
+                    text: VpnState.busy ? "  Working…" : (VpnState.connected ? "  Connected" : "  Disconnected")
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
-                    color: VpnState.connected ? Theme.green : Theme.red
+                    color: VpnState.busy ? Theme.yellow : (VpnState.connected ? Theme.green : Theme.red)
                 }
 
                 Rectangle {
@@ -126,11 +133,11 @@ PanelWindow {
                     width: 80
                     height: 24
                     radius: 0
-                    color: toggleMouse.containsMouse ? (VpnState.connected ? Theme.red : Theme.green) : Theme.bgLight
+                    color: VpnState.busy ? Theme.yellow : (toggleMouse.containsMouse ? (VpnState.connected ? Theme.red : Theme.green) : Theme.bgLight)
 
                     Text {
                         anchors.centerIn: parent
-                        text: VpnState.connected ? "Disconnect" : "Connect"
+                        text: VpnState.busy ? "Working…" : (VpnState.connected ? "Disconnect" : "Connect")
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
                         color: toggleMouse.containsMouse ? Theme.bg : Theme.fg

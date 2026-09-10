@@ -60,7 +60,7 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: {
                 const lines = text.trim().split("\n");
-                root.enabled = lines[0]?.includes("active") || false;
+                root.enabled = /^Status:\s*active\b/.test(lines[0] || "") || false;
                 const newRules = [];
                 for (const raw of lines) {
                     const l = raw.trim();
