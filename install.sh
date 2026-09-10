@@ -62,7 +62,7 @@ ok "Keyboard variant: $KBD_VARIANT"
 # ----------------------------------------------------------------------------
 say "ProtonVPN manager (optional)"
 echo "  The bar can include a graphical ProtonVPN manager (connect/disconnect,"
-echo "  view server info). It needs the protonvpn-cli package."
+echo "  view server info). It needs the proton-vpn-cli package (extra)."
 echo ""
 echo "  Install the ProtonVPN manager? [y/N]"
 read -r INSTALL_VPN
@@ -119,9 +119,9 @@ if ! $NO_PKG; then
   fi
 
   if $INSTALL_VPN; then
-    say "Installing protonvpn-cli (paru)"
-    paru -S --needed --noconfirm protonvpn-cli
-    ok "protonvpn-cli package"
+    say "Installing proton-vpn-cli (pacman)"
+    sudo pacman -S --needed --noconfirm proton-vpn-cli
+    ok "proton-vpn-cli package"
   fi
 
   say "Installing AUR packages (paru)"
