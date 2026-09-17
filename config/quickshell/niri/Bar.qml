@@ -359,7 +359,7 @@ PanelWindow {
                 id: mediaBtn
 
                 visible: Player.available
-                glyph: "󰝚"
+                glyph: Player.playing ? "\uF04B" : "\uF04C"
                 label: Player.displayTitle
                 accentColor: bar.mediaBtnOpen || Player.playing
                 tip: (Player.hasTrack ? Player.title + "\n" + Player.artist : Player.status) + "\n\nClick for player controls\nRight-click to play/pause\nScroll to change track"

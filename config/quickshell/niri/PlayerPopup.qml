@@ -185,7 +185,7 @@ PopupWindow {
                 }
 
                 MediaBtn {
-                    glyph: Player.playing ? "󰏤" : "󰐊"
+                    glyph: Player.playing ? "\uF04B" : "\uF04C"
                     primary: true
                     dimmed: !Player.canControl
                     action: () => Player.togglePlay()
