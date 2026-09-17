@@ -22,7 +22,7 @@ Singleton {
     readonly property bool playing: status === "Playing"
     readonly property bool hasTrack: title !== ""
     readonly property bool canControl: available && (status === "Playing" || status === "Paused")
-    readonly property string displayTitle: title.length > 42 ? title.slice(0, 41) + "…" : title
+    readonly property string displayTitle: title.length > 21 ? title.slice(0, 20) + "…" : title
 
     function fmtTime(s) {
         if (!isFinite(s) || s < 0)

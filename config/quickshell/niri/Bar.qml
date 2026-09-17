@@ -86,7 +86,6 @@ PanelWindow {
         property color glyphTint: Theme.fg
         property string imageSource: ""
         property string label: ""
-        property int labelSize: Theme.fontSize
         property string tip: ""
         property var onClickAction: null
         property var onRightClickAction: null
@@ -129,7 +128,7 @@ PanelWindow {
                 visible: label !== ""
                 text: label
                 font.family: Theme.fontFamily
-                font.pixelSize: btnRoot.labelSize
+                font.pixelSize: Theme.fontSize
                 color: btnRoot.dangerColor ? Theme.red : btnRoot.accentColor ? Theme.accent : Theme.fg
             }
         }
@@ -362,7 +361,6 @@ PanelWindow {
                 visible: Player.available
                 glyph: "󰝚"
                 label: Player.displayTitle
-                labelSize: Math.round(Theme.fontSize / 2)
                 accentColor: bar.mediaBtnOpen || Player.playing
                 tip: (Player.hasTrack ? Player.title + "\n" + Player.artist : Player.status) + "\n\nClick for player controls\nRight-click to play/pause\nScroll to change track"
                 onClickAction: () => {
