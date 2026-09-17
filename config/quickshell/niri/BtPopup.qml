@@ -44,14 +44,26 @@ PopupWindow {
     }
 
     readonly property Process devProc: Process {
-        command: ["sh", "-c", "connected=$(bluetoothctl devices Connected 2>/dev/null | awk '{print $2}'); bluetoothctl devices Paired 2>/dev/null; bluetoothctl devices 2>/dev/null"]
+        command: ["sh", "-c", "bluetoothctl devices Paired 2>/dev/null | sed 's/^Device /P /'; bluetoothctl devices Trusted 2>/dev/null | sed 's/^Device /T /'; bluetoothctl devices 2>/dev/null"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const lines = text.trim().split("\n");
+                const paired = {};
+                const trusted = {};
                 const seen = {};
                 const rows = [];
                 for (let i = 0; i < lines.length; i++) {
-                    const m = lines[i].match(/^Device\s+(\S+)\s+(.*)$/);
+                    let m = lines[i].match(/^P (\S+)/);
+                    if (m) {
+                        paired[m[1]] = true;
+                        continue;
+                    }
+                    m = lines[i].match(/^T (\S+)/);
+                    if (m) {
+                        trusted[m[1]] = true;
+                        continue;
+                    }
+                    m = lines[i].match(/^Device\s+(\S+)\s+(.*)$/);
                     if (!m)
                         continue;
                     if (seen[m[1]])
@@ -60,7 +72,9 @@ PopupWindow {
                     rows.push({
                         "mac": m[1],
                         "name": m[2],
-                        "connected": false
+                        "connected": false,
+                        "paired": !!paired[m[1]],
+                        "trusted": !!trusted[m[1]]
                     });
                 }
                 getConn.command = ["sh", "-c", "bluetoothctl devices Connected"];
@@ -70,22 +84,12 @@ PopupWindow {
         }
     }
 
-    property Process getConn: Process {
-        property var rows: []
-
+    readonly property Process scanProc: Process {
         command: ["true"]
         stdout: StdioCollector {
             onStreamFinished: {
-                const conns = {};
-                const lines = text.trim().split("\n");
-                for (let i = 0; i < lines.length; i++) {
-                    const m = lines[i].match(/^Device\s+(\S+)/);
-                    if (m)
-                        conns[m[1]] = true;
-                }
-                for (let j = 0; j < getConn.rows.length; j++)
-                    getConn.rows[j].connected = !!conns[getConn.rows[j].mac];
-                popupRoot.devices = getConn.rows.slice();
+                popupRoot.scanning = false;
+                popupRoot.refresh();
             }
         }
     }
@@ -100,7 +104,10 @@ PopupWindow {
             Actions.run("bluetoothctl scan off");
             scanning = false;
         } else {
-            Quickshell.execDetached(["bluetoothctl", "scan", "on"]);
+            // Plain `bluetoothctl scan on` only sets the discovery filter and
+            // never starts discovery when run detached; --timeout actually scans.
+            scanProc.command = ["sh", "-c", "bluetoothctl --timeout 30 scan on"];
+            scanProc.running = true;
             scanning = true;
         }
         refreshTimer.restart();
@@ -118,6 +125,11 @@ PopupWindow {
 
     function pairDev(d) {
         Actions.run("notify-send -u low 'Bluetooth' 'Pairing with " + d.name.replace(/'/g, "") + "…'; timeout 15 bluetoothctl pair " + d.mac + " && timeout 10 bluetoothctl trust " + d.mac + " && timeout 10 bluetoothctl connect " + d.mac + " && notify-send -u low 'Bluetooth' 'Paired " + d.name.replace(/'/g, "") + "' || notify-send -u critical 'Bluetooth' 'Pairing failed'");
+        refreshTimer.restart();
+    }
+
+    function trustDev(d, on) {
+        Actions.run("bluetoothctl " + (on ? "trust" : "untrust") + " " + d.mac);
         refreshTimer.restart();
     }
 
@@ -263,10 +275,29 @@ PopupWindow {
                     radius: 0
                     color: devMouse.containsMouse ? Theme.bgLight : "transparent"
 
+                    // Row-wide hover/press backdrop. Declared FIRST so it sits
+                    // behind the interactive elements and doesn't steal clicks.
+                    MouseArea {
+                        id: devMouse
+
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: {}
+                        onPressed: devRow.scale = 0.98
+                        onReleased: devRow.scale = 1.0
+                        onCanceled: devRow.scale = 1.0
+
+                        Behavior on scale {
+                            NumberAnimation { duration: 100; easing.type: Easing.OutQuad }
+                        }
+                    }
+
                     Row {
                         anchors.left: parent.left
                         anchors.leftMargin: 8
                         anchors.verticalCenter: parent.verticalCenter
+                        anchors.right: parent.right
+                        anchors.rightMargin: 8
                         spacing: 8
 
                         Text {
@@ -278,8 +309,9 @@ PopupWindow {
                         }
 
                         Column {
-                            width: 210
+                            width: 150
                             spacing: 0
+                            anchors.verticalCenter: parent.verticalCenter
 
                             Text {
                                 width: parent.width
@@ -291,15 +323,50 @@ PopupWindow {
                             }
 
                             Text {
-                                text: devRow.modelData.connected ? "Connected" : ""
+                                text: devRow.modelData.connected ? "Connected" : devRow.modelData.paired ? "Paired" : "Not paired"
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 10
-                                color: Theme.dim
+                                color: devRow.modelData.connected ? Theme.green : devRow.modelData.paired ? Theme.dim : Theme.dim
                             }
                         }
 
                         Item {
-                            width: 70
+                            width: 50
+                            height: 24
+
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: 0
+                                color: trustAct.containsMouse ? Theme.accent : Theme.bgLight
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: devRow.modelData.trusted ? "Trusted" : "Trust"
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 10
+                                    color: devRow.modelData.trusted ? Theme.green : trustAct.containsMouse ? Theme.bg : Theme.fg
+                                }
+                            }
+
+                            MouseArea {
+                                id: trustAct
+
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: popupRoot.trustDev(devRow.modelData, !devRow.modelData.trusted)
+                                onPressed: trustAct.parent.scale = 0.9
+                                onReleased: trustAct.parent.scale = 1.0
+                                onCanceled: trustAct.parent.scale = 1.0
+                            }
+
+                            Behavior on scale {
+                                NumberAnimation { duration: 100; easing.type: Easing.OutQuad }
+                            }
+                        }
+
+                        Item {
+                            width: 66
                             height: 24
 
                             Rectangle {
@@ -309,7 +376,7 @@ PopupWindow {
 
                                 Text {
                                     anchors.centerIn: parent
-                                    text: devRow.modelData.connected ? "Disconnect" : "Connect"
+                                    text: devRow.modelData.connected ? "Disconnect" : devRow.modelData.paired ? "Connect" : "Pair"
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 10
                                     color: devAct.containsMouse ? Theme.bg : Theme.fg
@@ -325,35 +392,20 @@ PopupWindow {
                                 onClicked: {
                                     if (devRow.modelData.connected)
                                         popupRoot.disconnectDev(devRow.modelData);
-                                    else if (devRow.modelData.name !== "")
+                                    else if (devRow.modelData.paired)
                                         popupRoot.connectDev(devRow.modelData);
                                     else
                                         popupRoot.pairDev(devRow.modelData);
                                 }
-                                onPressed: devAct.parent.parent.scale = 0.92
-                                onReleased: devAct.parent.parent.scale = 1.0
-                                onCanceled: devAct.parent.parent.scale = 1.0
+                                onPressed: devAct.parent.scale = 0.9
+                                onReleased: devAct.parent.scale = 1.0
+                                onCanceled: devAct.parent.scale = 1.0
                             }
 
-                    Behavior on scale {
-                        NumberAnimation { duration: 100; easing.type: Easing.OutQuad }
-                    }
+                            Behavior on scale {
+                                NumberAnimation { duration: 100; easing.type: Easing.OutQuad }
+                            }
                         }
-                    }
-
-                    MouseArea {
-                        id: devMouse
-
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onClicked: {}
-                        onPressed: devRow.scale = 0.96
-                        onReleased: devRow.scale = 1.0
-                        onCanceled: devRow.scale = 1.0
-                    }
-
-                    Behavior on scale {
-                        NumberAnimation { duration: 100; easing.type: Easing.OutQuad }
                     }
                 }
 
