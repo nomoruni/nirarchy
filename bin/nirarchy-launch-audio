@@ -1,8 +1,4 @@
 #!/bin/bash
-# nirarchy-launch-audio: Audio controls (wiremix TUI, same as Omarchy; pavucontrol fallback)
+# nirarchy-launch-audio: Audio controls (pavucontrol mixer)
 
-if command -v wiremix >/dev/null 2>&1; then
-  exec nirarchy-launch-or-focus-tui wiremix
-else
-  exec pavucontrol
-fi
+exec nirarchy-launch-or-focus pavucontrol pavucontrol

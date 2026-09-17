@@ -104,7 +104,7 @@ if ! $NO_PKG; then
     foot ttf-jetbrains-mono-nerd ttf-liberation noto-fonts noto-fonts-emoji \
     hyprpicker impala bluetui btop eza fzf ripgrep fd bat zoxide starship fastfetch gum jq \
     xdg-desktop-portal-gtk xdg-desktop-portal-wlr \
-    gpu-screen-recorder gammastep wiremix \
+    gpu-screen-recorder gammastep \
     tesseract tesseract-data-eng \
     networkmanager iwd bluez bluez-utils libqalculate \
     sddm qt6-declarative qt6-svg \

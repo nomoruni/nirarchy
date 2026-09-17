@@ -95,7 +95,7 @@ spawn-at-startup "sh" "-c" "swaybg -i $HOME/.config/nirarchy/current/background 
 spawn-at-startup "wl-paste" "--watch" "cliphist" "store"
 
 window-rule {
-    match app-id=r"^(pavucontrol|blueman-manager|nm-connection-editor|org.gnome.Calculator|satty|com.github.hlissner.*)$"
+    match app-id=r"^((org\.pulseaudio\.)?pavucontrol|blueman-manager|nm-connection-editor|org.gnome.Calculator|satty|com.github.hlissner.*)$"
     open-floating true
 }
 
@@ -110,7 +110,7 @@ window-rule {
 }
 
 window-rule {
-    match app-id=r#"^org\.nirarchy\.(wiremix|impala|bluetui)$"#
+    match app-id=r#"^org\.nirarchy\.(impala|bluetui)$"#
     open-floating true
 }
 
@@ -288,7 +288,7 @@ animations
 
 
 window-rule {
-    match app-id=r#"^(xarchiver|eog|evince|file-roller|gparted|arandr|nitrogen|lxappearance|pavucontrol|blueman-manager|nm-connection-editor|org.gnome.Calculator|satty|com.github.hlissner.*)$"#
+    match app-id=r#"^(xarchiver|eog|evince|file-roller|gparted|arandr|nitrogen|lxappearance|(org\.pulseaudio\.)?pavucontrol|blueman-manager|nm-connection-editor|org.gnome.Calculator|satty|com.github.hlissner.*)$"#
     open-floating true
 }
 

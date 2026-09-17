@@ -20,7 +20,7 @@ as its only AI agent.
 | **Compositor** | niri with Omarchy's signature cyan→green 45° gradient border, 5px gaps, `prefer-no-csd` |
 | **Display manager** | SDDM with themed variants (logo, password entry, lock icons) — switches with theme |
 | **Top bar** | Quickshell: workspace dots (filled = active), clock + calendar popup, weather, update/recording/idle/silence indicators, tray, wifi/bluetooth/volume/CPU/battery |
-| **Managers** | In-bar WiFi, Bluetooth, printer (CUPS), UFW firewall, and ProtonVPN (optional) popup panels (nmcli/bluetoothctl/ufw/protonvpn), wiremix audio TUI |
+| **Managers** | In-bar WiFi, Bluetooth, printer (CUPS), UFW firewall, and ProtonVPN (optional) popup panels (nmcli/bluetoothctl/ufw/protonvpn), pavucontrol audio mixer |
 | **Menus** | Walker + Elephant: app launcher, Nirarchy menu (Apps/Learn/Trigger/Style/Setup/Install/Remove/Update/System) |
 | **Theming** | 8 themes (Tokyo Night default, Catppuccin, Everforest, Rose Pine, Gruvbox, Nord, Kanagawa, Osaka Jade) — one switch recolors the bar, foot terminals (even running ones), window borders, walker, mako, swayosd, lock screen, wallpaper, SDDM theme, and Papirus folder colors, live |
 | **Theme picker** | Full-screen overlay with image previews, search, arrow/hjkl navigation, Enter to apply |
