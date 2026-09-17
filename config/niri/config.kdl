@@ -15,6 +15,8 @@ environment {
 
 input {
     keyboard {
+        numlock
+
         repeat-delay 400
         repeat-rate 40
         track-layout "global"
@@ -36,7 +38,6 @@ input {
     }
 
     warp-mouse-to-focus
-    focus-follows-mouse max-scroll-amount="0%"
 }
 
 cursor {
@@ -84,7 +85,7 @@ layout {
     }
 
     default-column-width { proportion 0.5; }
-    center-focused-column "never"
+    center-focused-column "always"
 }
 
 spawn-at-startup "systemctl" "--user" "start" "nirarchy-bar.service"
@@ -102,7 +103,7 @@ window-rule {
 
 
 window-rule {
-    match app-id=r#"^org\.nirarchy\.btop$"#
+    match app-id=r"^org\.nirarchy\.btop$"
     open-floating true
     default-floating-position x=200 y=100
     default-column-width { fixed 1200; }
@@ -110,12 +111,12 @@ window-rule {
 }
 
 window-rule {
-    match app-id=r#"^org\.nirarchy\.(impala|bluetui)$"#
+    match app-id=r"^org\.nirarchy\.(impala|bluetui)$"
     open-floating true
 }
 
 window-rule {
-    match title=r#"(Picture-in-Picture|pipewire)"#
+    match title=r"(Picture-in-Picture|pipewire)"
     open-floating true
 }
 
@@ -288,17 +289,17 @@ animations
 
 
 window-rule {
-    match app-id=r#"^(xarchiver|eog|evince|file-roller|gparted|arandr|nitrogen|lxappearance|(org\.pulseaudio\.)?pavucontrol|blueman-manager|nm-connection-editor|org.gnome.Calculator|satty|com.github.hlissner.*)$"#
+    match app-id=r"^(xarchiver|eog|evince|file-roller|gparted|arandr|nitrogen|lxappearance|(org\.pulseaudio\.)?pavucontrol|blueman-manager|nm-connection-editor|org.gnome.Calculator|satty|com.github.hlissner.*)$"
     open-floating true
 }
 
 window-rule {
-    match title=r#"^(Copy|Move|Execute|Delete|Rename|Properties|About|Preferences|Settings|Organize Desktop|Add/Remove|New Folder|New File|Open With|Select|Browse|Search|Replace|Confirm|Error|Warning|Information|Question)( File)?$"#
+    match title=r"^(Copy|Move|Execute|Delete|Rename|Properties|About|Preferences|Settings|Organize Desktop|Add/Remove|New Folder|New File|Open With|Select|Browse|Search|Replace|Confirm|Error|Warning|Information|Question)( File)?$"
     open-floating true
 }
 
 window-rule {
-    match title=r#"^(Color Chooser|Font Selector|File Properties|Terminal Preferences)$"#
+    match title=r"^(Color Chooser|Font Selector|File Properties|Terminal Preferences)$"
     open-floating true
 }
 

@@ -270,8 +270,8 @@ PanelWindow {
 // === VPN START ===
             BarButton {
                 glyph: "󰖂"
-                accentColor: bar.vpnBtnOpen
-                dangerColor: VpnState.connected
+                accentColor: VpnState.connected || bar.vpnBtnOpen
+                dangerColor: false
                 tip: "VPN — " + (VpnState.connected ? "connected to " + VpnState.server : "disconnected") + "\n\nLeft-click: toggle connection\nRight-click: open panel"
                 onClickAction: () => VpnState.toggle()
                 onRightClickAction: () => {
@@ -353,6 +353,30 @@ PanelWindow {
                 tip: "Reminders\n\nRight-click to show all"
                 onClickAction: () => Actions.detached("nirarchy-menu reminder")
                 onRightClickAction: () => Actions.detached("nirarchy-reminder show")
+            }
+
+            BarButton {
+                id: mediaBtn
+
+                visible: Player.available
+                glyph: "󰝚"
+                label: Player.displayTitle
+                accentColor: bar.mediaBtnOpen || Player.playing
+                tip: (Player.hasTrack ? Player.title + "\n" + Player.artist : Player.status) + "\n\nClick for player controls\nRight-click to play/pause\nScroll to change track"
+                onClickAction: () => {
+                    if (mediaPopup.visible) {
+                        mediaPopup.visible = false;
+                        return;
+                    }
+                    const px = mapToItem(bar.contentItem, 0, 0).x;
+                    netPopup.visible = false;
+                    btPopup.visible = false;
+                    bar.mediaBtnOpen = true;
+                    mediaPopup.openAt(px);
+                }
+                onRightClickAction: () => Player.togglePlay()
+                onScrollUpAction: () => Player.previous()
+                onScrollDownAction: () => Player.next()
             }
 
             BarButton {
@@ -549,9 +573,17 @@ PanelWindow {
         onClosed: printerBtnOpen = false
     }
 
+    PlayerPopup {
+        id: mediaPopup
+
+        barWin: bar
+        onClosed: mediaBtnOpen = false
+    }
+
     property bool wifiBtnOpen: false
     property bool btBtnOpen: false
     property bool pomoBtnOpen: false
+    property bool mediaBtnOpen: false
     // === VPN START ===
     property bool vpnBtnOpen: false
     // === VPN END ===
