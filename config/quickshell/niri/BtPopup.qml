@@ -84,6 +84,26 @@ PopupWindow {
         }
     }
 
+    property Process getConn: Process {
+        property var rows: []
+
+        command: ["true"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const conns = {};
+                const lines = text.trim().split("\n");
+                for (let i = 0; i < lines.length; i++) {
+                    const m = lines[i].match(/^Device\s+(\S+)/);
+                    if (m)
+                        conns[m[1]] = true;
+                }
+                for (let j = 0; j < getConn.rows.length; j++)
+                    getConn.rows[j].connected = !!conns[getConn.rows[j].mac];
+                popupRoot.devices = getConn.rows.slice();
+            }
+        }
+    }
+
     readonly property Process scanProc: Process {
         command: ["true"]
         stdout: StdioCollector {
@@ -102,6 +122,7 @@ PopupWindow {
     function toggleScan() {
         if (scanning) {
             Actions.run("bluetoothctl scan off");
+            scanProc.running = false;
             scanning = false;
         } else {
             // Plain `bluetoothctl scan on` only sets the discovery filter and
