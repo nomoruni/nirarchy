@@ -272,7 +272,7 @@ PanelWindow {
                 glyph: "󰖂"
                 accentColor: VpnState.connected || bar.vpnBtnOpen
                 dangerColor: false
-                tip: "VPN — " + (VpnState.connected ? "connected to " + VpnState.server : "disconnected") + "\n\nLeft-click: toggle connection\nRight-click: open panel"
+                tip: "VPN — " + (VpnState.connected ? "connected to " + VpnState.serverName : "disconnected") + "\n\nLeft-click: toggle connection\nRight-click: open panel"
                 onClickAction: () => VpnState.toggle()
                 onRightClickAction: () => {
                     if (vpnPopup.visible) {

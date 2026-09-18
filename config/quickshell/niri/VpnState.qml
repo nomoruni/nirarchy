@@ -8,7 +8,7 @@ Singleton {
     id: root
 
     property bool connected: false
-    property string server: ""
+    property string serverName: ""
     property string load: ""
     property string protocol: ""
     property string lastOutput: ""
@@ -50,29 +50,19 @@ Singleton {
             onStreamFinished: {
                 const lines = text.trim().split("\n");
                 root.connected = false;
-                root.server = "";
+                root.serverName = "";
                 root.load = "";
                 root.protocol = "";
-                for (const raw of lines) {
-                    const l = raw.trim();
-                    const stMatch = l.match(/^Status:\s*(.*)$/);
-                    if (stMatch) {
-                        root.connected = /^connected$/i.test(stMatch[1].trim());
-                        continue;
-                    }
-                    const srvMatch = l.match(/^Server:\s*(.*)$/);
-                    if (srvMatch) {
-                        root.server = srvMatch[1];
-                        continue;
-                    }
-                    const ldMatch = l.match(/^Load:\s*(.*)$/);
-                    if (ldMatch) {
-                        root.load = ldMatch[1];
-                        continue;
-                    }
-                    const prMatch = l.match(/^Protocol:\s*(.*)$/);
-                    if (prMatch) {
-                        root.protocol = prMatch[1];
+                for (let i = 0; i < lines.length; i++) {
+                    const l = lines[i].trim();
+                    if (l.startsWith("Status:")) {
+                        root.connected = /^connected$/i.test(l.slice(7).trim());
+                    } else if (l.startsWith("Server:")) {
+                        root.serverName = l.slice(7).trim();
+                    } else if (l.startsWith("Load:")) {
+                        root.load = l.slice(5).trim();
+                    } else if (l.startsWith("Protocol:")) {
+                        root.protocol = l.slice(9).trim();
                     }
                 }
                 if (root.needsRefresh) {
