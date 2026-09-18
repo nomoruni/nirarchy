@@ -371,6 +371,7 @@ PanelWindow {
                     const px = mapToItem(bar.contentItem, 0, 0).x;
                     netPopup.visible = false;
                     btPopup.visible = false;
+                    audioPopup.visible = false;
                     bar.mediaBtnOpen = true;
                     mediaPopup.openAt(px);
                 }
@@ -440,6 +441,8 @@ PanelWindow {
                     }
                     const px = mapToItem(bar.contentItem, 0, 0).x;
                     netPopup.visible = false;
+                    audioPopup.visible = false;
+                    mediaPopup.visible = false;
                     bar.btBtnOpen = true;
                     btPopup.openAt(px);
                 }
@@ -479,16 +482,35 @@ PanelWindow {
                     }
                     const px = mapToItem(bar.contentItem, 0, 0).x;
                     btPopup.visible = false;
+                    audioPopup.visible = false;
+                    mediaPopup.visible = false;
                     bar.wifiBtnOpen = true;
                     netPopup.openAt(px);
                 }
             }
 
             BarButton {
+                id: audioBtn
+
                 glyph: Indicators.audioGlyph()
-                tip: Sys.muted ? "Muted" : "Playing at " + Sys.volume + "%"
-                onClickAction: () => Actions.detached("nirarchy-launch-audio")
-                onRightClickAction: () => Actions.run("swayosd-client --output-volume mute-toggle")
+                accentColor: bar.audioBtnOpen
+                tip: (Sys.muted ? "Muted" : "Playing at " + Sys.volume + "%") + "\n\nClick for audio devices\nRight-click to mute\nScroll to change volume"
+                onClickAction: () => {
+                    if (audioPopup.visible) {
+                        audioPopup.visible = false;
+                        return;
+                    }
+                    const px = mapToItem(bar.contentItem, 0, 0).x;
+                    netPopup.visible = false;
+                    btPopup.visible = false;
+                    mediaPopup.visible = false;
+                    bar.audioBtnOpen = true;
+                    audioPopup.openAt(px);
+                }
+                onRightClickAction: () => {
+                    Actions.run("swayosd-client --output-volume mute-toggle");
+                    Sys.audioProc.running = true;
+                }
                 onScrollUpAction: () => {
                     Actions.run("swayosd-client --output-volume raise");
                     Sys.audioProc.running = true;
@@ -580,10 +602,18 @@ PanelWindow {
         onClosed: mediaBtnOpen = false
     }
 
+    AudioPopup {
+        id: audioPopup
+
+        barWin: bar
+        onClosed: audioBtnOpen = false
+    }
+
     property bool wifiBtnOpen: false
     property bool btBtnOpen: false
     property bool pomoBtnOpen: false
     property bool mediaBtnOpen: false
+    property bool audioBtnOpen: false
     // === VPN START ===
     property bool vpnBtnOpen: false
     // === VPN END ===
