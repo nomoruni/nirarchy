@@ -9,10 +9,6 @@ PanelWindow {
 
     property var barWin
     property real openX: 0
-    property string serverDisplay: ""
-    property string loadDisplay: ""
-    property string protoDisplay: ""
-    property bool vpnConnected: false
 
     visible: false
     color: "transparent"
@@ -30,14 +26,10 @@ PanelWindow {
         bottom: true
     }
 
-    function refreshStatus() {
-        statusProc.running = true;
-    }
-
     function openAt(x) {
         popupRoot.openX = x ?? 800;
         visible = true;
-        refreshStatus();
+        VpnState.refresh();
     }
 
     onVisibleChanged: {
@@ -45,44 +37,11 @@ PanelWindow {
             closed();
     }
 
-    readonly property Process statusProc: Process {
-        command: ["sh", "-c", "protonvpn status 2>&1"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const lines = text.trim().split("\n");
-                popupRoot.vpnConnected = false;
-                popupRoot.serverDisplay = "";
-                popupRoot.loadDisplay = "";
-                popupRoot.protoDisplay = "";
-                for (let i = 0; i < lines.length; i++) {
-                    const l = lines[i].trim();
-                    if (l.startsWith("Status:"))
-                        popupRoot.vpnConnected = /^connected$/i.test(l.slice(7).trim());
-                    else if (l.startsWith("Server:"))
-                        popupRoot.serverDisplay = l.slice(7).trim();
-                    else if (l.startsWith("Load:"))
-                        popupRoot.loadDisplay = l.slice(5).trim();
-                    else if (l.startsWith("Protocol:"))
-                        popupRoot.protoDisplay = l.slice(9).trim();
-                }
-            }
-        }
-    }
-
-    readonly property Process cmdProc: Process {
-        command: ["true"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                popupRoot.refreshStatus();
-            }
-        }
-    }
-
     Timer {
         interval: 20000
         running: popupRoot.visible
         repeat: true
-        onTriggered: popupRoot.refreshStatus()
+        onTriggered: VpnState.refresh()
     }
 
     MouseArea {
@@ -161,10 +120,10 @@ PanelWindow {
                     anchors.left: parent.left
                     anchors.leftMargin: 10
                     anchors.verticalCenter: parent.verticalCenter
-                    text: popupRoot.vpnConnected ? "  Connected" : "  Disconnected"
+                    text: VpnState.busy ? "  Working…" : (VpnState.connected ? "  Connected" : "  Disconnected")
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
-                    color: popupRoot.vpnConnected ? Theme.green : Theme.red
+                    color: VpnState.busy ? Theme.yellow : (VpnState.connected ? Theme.green : Theme.red)
                 }
 
                 Rectangle {
@@ -174,11 +133,11 @@ PanelWindow {
                     width: 80
                     height: 24
                     radius: 0
-                    color: popupRoot.vpnConnected ? Theme.red : Theme.green
+                    color: VpnState.busy ? Theme.yellow : (toggleMouse.containsMouse ? (VpnState.connected ? Theme.red : Theme.green) : Theme.bgLight)
 
                     Text {
                         anchors.centerIn: parent
-                        text: popupRoot.vpnConnected ? "Disconnect" : "Connect"
+                        text: VpnState.busy ? "Working…" : (VpnState.connected ? "Disconnect" : "Connect")
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
                         color: toggleMouse.containsMouse ? Theme.bg : Theme.fg
@@ -195,13 +154,14 @@ PanelWindow {
                 }
             }
 
-            // Server info (when connected)
+            // Connection info (when connected)
             Column {
-                visible: popupRoot.vpnConnected
+                visible: VpnState.connected
                 width: parent.width
                 spacing: 6
 
                 Row {
+                    width: parent.width
                     spacing: 8
 
                     Text {
@@ -214,7 +174,7 @@ PanelWindow {
                     }
 
                     Text {
-                        text: popupRoot.serverDisplay || "—"
+                        text: VpnState.serverName || "—"
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
                         color: Theme.fg
@@ -236,7 +196,7 @@ PanelWindow {
                     }
 
                     Text {
-                        text: popupRoot.loadDisplay || "—"
+                        text: VpnState.load || "—"
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
                         color: Theme.fg
@@ -256,7 +216,7 @@ PanelWindow {
                     }
 
                     Text {
-                        text: popupRoot.protoDisplay || "—"
+                        text: VpnState.protocol || "—"
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
                         color: Theme.fg
@@ -297,7 +257,7 @@ PanelWindow {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: popupRoot.refreshStatus()
+                    onClicked: VpnState.refresh()
                 }
             }
         }
