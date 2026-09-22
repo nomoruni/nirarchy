@@ -145,17 +145,29 @@ FOLDER_COLOR="${FOLDER_COLORS[$name]:-blue}"
 # last generated copy if generation fails (missing font/Pillow).
 command -v nirarchy-sddm-gen >/dev/null 2>&1 && nirarchy-sddm-gen --single "$name" >/dev/null 2>&1 || true
 
-ROOT_SCRIPT=""
-if [[ -d "$SDDM_THEMES_DIR/$name" ]]; then
-  ROOT_SCRIPT+="cp -f $SDDM_THEMES_DIR/$name/* $SDDM_LIVE/ 2>/dev/null; "
+# Update the live SDDM theme. Prefer the root-owned helper installed by
+# install.sh (passwordless via /etc/sudoers.d/nirarchy-sddm); fall back to a
+# password prompt, or the old pkexec dialog when the helper is not installed.
+HELPER=/usr/local/bin/nirarchy-sddm-apply
+SDDM_FAILED=false
+if [[ -x $HELPER ]] && command -v sudo >/dev/null 2>&1; then
+  if ! sudo -n "$HELPER" "$name" "$FOLDER_COLOR" 2>/dev/null; then
+    sudo "$HELPER" "$name" "$FOLDER_COLOR" || SDDM_FAILED=true
+  fi
+else
+  ROOT_SCRIPT=""
+  if [[ -d "$SDDM_THEMES_DIR/$name" ]]; then
+    ROOT_SCRIPT+="cp -f $SDDM_THEMES_DIR/$name/* $SDDM_LIVE/ 2>/dev/null; "
+  fi
+  ROOT_SCRIPT+="papirus-folders -t Papirus -C $FOLDER_COLOR -u 2>/dev/null; true"
+  pkexec /bin/bash -c "$ROOT_SCRIPT" || SDDM_FAILED=true
 fi
-ROOT_SCRIPT+="papirus-folders -t Papirus -C $FOLDER_COLOR -u 2>/dev/null; true"
 
-# A cancelled/failed password prompt must not abort the theme apply (set -e)
-# and must be reported, otherwise the login screen silently keeps old colors.
-if ! pkexec /bin/bash -c "$ROOT_SCRIPT"; then
+# A cancelled/failed update must not abort the theme apply (set -e) and must
+# be reported, otherwise the login screen silently keeps old colors.
+if $SDDM_FAILED; then
   notify-send -u critical "SDDM login screen not updated" \
-    "Password prompt was cancelled or failed. Re-run: nirarchy-theme-set $name" \
+    "The theme was applied, but the login screen still uses the previous colors. Re-run: nirarchy-theme-set $name" \
     2>/dev/null || true
 fi
 

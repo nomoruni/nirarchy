@@ -1,0 +1,39 @@
+#!/bin/bash
+# nirarchy-sddm-apply: (root) update the live SDDM theme with the selected
+# theme's files and recolor Papirus folders — all in one privileged step.
+#
+# Installed by install.sh to /usr/local/bin (root-owned) and granted
+# passwordless execution via /etc/sudoers.d/nirarchy-sddm:
+#     <user> ALL=(root) NOPASSWD: /usr/local/bin/nirarchy-sddm-apply
+#
+# Invoked by nirarchy-theme-set as:
+#     sudo nirarchy-sddm-apply <theme> [folder-color]
+#
+# Scope is deliberate: arguments are validated, the source directory is
+# derived from the invoking user's home (never taken as a raw path), and the
+# only root writes are into /usr/share/sddm/themes/nirarchy/ plus the
+# papirus-folders icon recolor.
+
+set -euo pipefail
+
+name="${1:-}"
+[[ $name =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo "nirarchy-sddm-apply: invalid theme name: $name" >&2; exit 1; }
+color="${2:-}"
+
+SDDM_LIVE="/usr/share/sddm/themes/nirarchy"
+
+# Resolve the invoking user's home (we run as root via sudo)
+user="${SUDO_USER:-}"
+[[ -n $user ]] || { echo "nirarchy-sddm-apply: must be run via sudo" >&2; exit 1; }
+home="$(getent passwd "$user" | cut -d: -f6)"
+[[ -n $home && -d $home ]] || { echo "nirarchy-sddm-apply: cannot resolve home for $user" >&2; exit 1; }
+
+src="$home/.local/share/nirarchy/sddm-themes/$name"
+[[ -d $src ]] || { echo "nirarchy-sddm-apply: theme variant not found: $src" >&2; exit 1; }
+
+mkdir -p "$SDDM_LIVE"
+cp -f "$src"/* "$SDDM_LIVE/"
+
+if [[ -n $color ]]; then
+  papirus-folders -t Papirus -C "$color" -u >/dev/null 2>&1 || true
+fi

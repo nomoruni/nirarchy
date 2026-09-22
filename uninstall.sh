@@ -47,6 +47,7 @@ papirus-folders -t Papirus -D -u 2>/dev/null || true
 say "Removing SDDM theme (requires sudo)"
 sudo rm -rf /usr/share/sddm/themes/nirarchy
 sudo rm -f /etc/sddm.conf.d/nirarchy.conf
+sudo rm -f /usr/local/bin/nirarchy-sddm-apply /etc/sudoers.d/nirarchy-sddm
 
 say "Nirarchy removed."
 echo "Note: system packages (niri, quickshell, walker, ...) were left installed."

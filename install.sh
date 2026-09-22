@@ -275,6 +275,27 @@ if $INSTALL_UFW; then
   fi
 fi
 
+# ----------------------------------------------------------------------------
+say "SDDM theme passwordless sudo (optional)"
+echo "  Changing the theme updates the SDDM login screen colors (and Papirus"
+echo "  folder colors) as root. To avoid being asked for your password on every"
+echo "  theme change, a root-owned helper is installed and a NOPASSWD rule is"
+echo "  added for it:"
+echo "      $USER ALL=(root) NOPASSWD: /usr/local/bin/nirarchy-sddm-apply"
+echo ""
+echo "  Install the helper + passwordless rule? [y/N]"
+read -r INSTALL_SDDM_SUDO
+INSTALL_SDDM_SUDO=$(echo "${INSTALL_SDDM_SUDO:-n}" | tr '[:upper:]' '[:lower:]')
+if [[ "$INSTALL_SDDM_SUDO" == "y" || "$INSTALL_SDDM_SUDO" == "yes" ]]; then
+  sudo install -Dm755 "$REPO_DIR/bin/nirarchy-sddm-apply" /usr/local/bin/nirarchy-sddm-apply
+  sudo sh -c "echo '$USER ALL=(root) NOPASSWD: /usr/local/bin/nirarchy-sddm-apply' > /etc/sudoers.d/nirarchy-sddm && \
+    chown root:root /etc/sudoers.d/nirarchy-sddm && chmod 440 /etc/sudoers.d/nirarchy-sddm"
+  sudo visudo -cf /etc/sudoers.d/nirarchy-sddm
+  ok "passwordless SDDM theme updates enabled"
+else
+  ok "you will be prompted for your password on SDDM theme changes"
+fi
+
 # opencode skills (only if opencode config exists or user opts in by presence of dir)
 if [[ -d $HOME/.config/opencode ]]; then
   mkdir -p "$HOME/.config/opencode/skills"
