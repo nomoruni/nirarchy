@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """nirarchy-sddm-gen: Generate SDDM theme variants for all Nirarchy themes."""
 
-import sys, os, shutil, tomllib
+import sys, os, re, shutil, tomllib
 from pathlib import Path
 
 try:
@@ -206,17 +206,45 @@ def make_bullet(fg, path):
 
 
 def main():
+    args = sys.argv[1:]
+    single = None
+    if args:
+        if args[0] in ("--single", "-s") and len(args) > 1:
+            single = args[1]
+        elif args[0] in ("--help", "-h"):
+            print("Usage: nirarchy-sddm-gen [--single <theme>]")
+            return
+        else:
+            print(f"ERROR: Unknown argument: {args[0]}")
+            sys.exit(1)
+
+    if single is not None and not re.fullmatch(r"[a-z0-9][a-z0-9-]*", single):
+        print(f"ERROR: Invalid theme name: {single}")
+        sys.exit(1)
+
     if not FONT:
         print("ERROR: No suitable font found (Doto or Montserrat)")
         sys.exit(1)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    for theme_dir in sorted(THEMES_DIR.iterdir()):
+    if single is not None:
+        theme_dirs = [THEMES_DIR / single]
+    else:
+        theme_dirs = sorted(THEMES_DIR.iterdir())
+
+    generated = 0
+    for theme_dir in theme_dirs:
         if not theme_dir.is_dir():
+            if single is not None:
+                print(f"ERROR: Theme not found: {single}")
+                sys.exit(1)
             continue
         colors_file = theme_dir / "colors.toml"
         if not colors_file.exists():
+            if single is not None:
+                print(f"ERROR: No colors.toml for: {single}")
+                sys.exit(1)
             continue
 
         name = theme_dir.name
@@ -241,9 +269,10 @@ def main():
         make_lock_failed(fg, out / "lock-failed.png")
         make_bullet(fg, out / "bullet.png")
 
+        generated += 1
         print(f"  {name}")
 
-    print(f"\nGenerated {len(list(OUT_DIR.iterdir()))} themes in {OUT_DIR}")
+    print(f"\nGenerated {generated} themes in {OUT_DIR}")
 
 
 if __name__ == "__main__":

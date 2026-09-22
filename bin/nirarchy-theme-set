@@ -140,13 +140,24 @@ declare -A FOLDER_COLORS=(
 )
 FOLDER_COLOR="${FOLDER_COLORS[$name]:-blue}"
 
+# Regenerate this theme's SDDM files from colors.toml (the source of truth)
+# so the login screen always matches the selected palette. Falls back to the
+# last generated copy if generation fails (missing font/Pillow).
+command -v nirarchy-sddm-gen >/dev/null 2>&1 && nirarchy-sddm-gen --single "$name" >/dev/null 2>&1 || true
+
 ROOT_SCRIPT=""
 if [[ -d "$SDDM_THEMES_DIR/$name" ]]; then
   ROOT_SCRIPT+="cp -f $SDDM_THEMES_DIR/$name/* $SDDM_LIVE/ 2>/dev/null; "
 fi
 ROOT_SCRIPT+="papirus-folders -t Papirus -C $FOLDER_COLOR -u 2>/dev/null; true"
 
-pkexec /bin/bash -c "$ROOT_SCRIPT"
+# A cancelled/failed password prompt must not abort the theme apply (set -e)
+# and must be reported, otherwise the login screen silently keeps old colors.
+if ! pkexec /bin/bash -c "$ROOT_SCRIPT"; then
+  notify-send -u critical "SDDM login screen not updated" \
+    "Password prompt was cancelled or failed. Re-run: nirarchy-theme-set $name" \
+    2>/dev/null || true
+fi
 
 # Restart walker (CSS) and swayosd-server (GTK CSS loads at startup)
 pkill -f "walker --gapplication-service" 2>/dev/null || true
