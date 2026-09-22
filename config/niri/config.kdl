@@ -171,8 +171,11 @@ binds {
     Mod+Shift+8 { move-window-to-workspace 8; }
     Mod+Shift+9 { move-window-to-workspace 9; }
     Mod+Shift+0 { move-window-to-workspace 10; }
-    Mod+Tab { focus-workspace-down; }
-    Mod+Shift+Tab { focus-workspace-up; }
+    // Cycle through windows on the current workspace (down the column, then
+    // into the column to the right); workspace switching is still available via
+    // Mod+Ctrl+Tab, Mod+Page_Up/Down and Mod+U/I.
+    Mod+Tab { focus-window-down-or-column-right; }
+    Mod+Shift+Tab { focus-window-up-or-column-left; }
     Mod+Ctrl+Tab { focus-workspace-previous; }
     Mod+S { spawn "nirarchy-scratchpad"; }
     Mod+Alt+S { move-window-to-workspace "scratchpad"; }
