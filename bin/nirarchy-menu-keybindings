@@ -95,8 +95,7 @@ SUPER + Shift + Alt + Up → Move workspace to output up
 SUPER + Shift + Alt + Down → Move workspace to output down
 Ctrl + Alt + Tab → Focus next monitor
 Ctrl + Alt + Shift + Tab → Focus previous monitor
-SUPER + S → Toggle scratchpad workspace
-SUPER + Alt + S → Move window to scratchpad
+
 Print → Screenshot
 Alt + Print → Screenrecord menu
 SUPER + Print → Color picker

@@ -74,7 +74,7 @@ nirarchy-capture-screenrecording [--with-desktop-audio|--with-microphone-audio|-
 nirarchy-capture-text-extraction   # OCR region to clipboard
 nirarchy-system-lock               # hyprlock (also fires before sleep)
 nirarchy-toggle-{idle,nightlight,notification-silencing,bar}
-nirarchy-scratchpad                # Toggle named "scratchpad" workspace
+
 nirarchy-launch-{wifi,audio,bluetooth,files,walker}
 nirarchy-agent                     # Open opencode in focused terminal's cwd
 nirarchy-reminder <min> [msg]      # systemd-run based reminders; show|clear
@@ -86,7 +86,7 @@ nirarchy-agent-crash [pid]         # Diagnose crash with opencode (uses diagnose
 
 Super+Return terminal · Super+W firefox · Super+Q close · Super+E files · Super+F maximize ·
 Super+Shift+F fullscreen · Super+T float · Super+Space launcher · Super+Alt+Space menu ·
-Super+Escape system menu · Super+Shift+K keybind list · Super+V clipboard · Super+S scratchpad ·
+Super+Escape system menu · Super+Shift+K keybind list · Super+V clipboard ·
 Super+Ctrl+L lock · Super+Shift+A / Super+Ctrl+Return opencode agent · Print screenshot ·
 Super+Shift+Ctrl+Space theme picker · Super+Ctrl+Space background picker · click bar clock = calendar.
 

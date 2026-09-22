@@ -177,8 +177,7 @@ binds {
     Mod+Tab { focus-window-down-or-column-right; }
     Mod+Shift+Tab { focus-window-up-or-column-left; }
     Mod+Ctrl+Tab { focus-workspace-previous; }
-    Mod+S { spawn "nirarchy-scratchpad"; }
-    Mod+Alt+S { move-window-to-workspace "scratchpad"; }
+    
 
     // Move windows between columns
     Mod+Shift+Left { move-column-left; }

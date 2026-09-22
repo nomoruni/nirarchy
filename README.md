@@ -75,7 +75,6 @@ To remove: `bash uninstall.sh`
 | `Super + E` | File manager (pcmanfm) |
 | `Super + F` / `Super + Shift + F` | Maximize / Fullscreen |
 | `Super + 1..0` | Workspaces (dots on the bar) |
-| `Super + S` | Scratchpad workspace |
 | `Print` | Screenshot |
 | `Super + Ctrl + Space` | Wallpaper picker |
 | `Super + Shift + Ctrl + Space` | Theme picker |
