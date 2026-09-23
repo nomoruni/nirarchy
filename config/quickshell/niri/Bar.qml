@@ -300,9 +300,8 @@ PanelWindow {
                 glyph: "󰖂"
                 accentColor: VpnState.connected || bar.vpnBtnOpen
                 dangerColor: false
-                tip: "VPN — " + (VpnState.connected ? "connected to " + VpnState.serverName : "disconnected") + "\n\nLeft-click: toggle connection\nRight-click: open panel"
-                onClickAction: () => VpnState.toggle()
-                onRightClickAction: () => {
+                tip: "VPN — " + (VpnState.connected ? "connected to " + VpnState.serverName : "disconnected") + "\n\nLeft-click: open panel\nRight-click: toggle connection"
+                onClickAction: () => {
                     if (vpnPopup.visible) {
                         vpnPopup.visible = false;
                         return;
@@ -310,6 +309,7 @@ PanelWindow {
                     const px = mapToItem(bar.contentItem, 0, 0).x;
                     vpnPopup.openAt(px);
                 }
+                onRightClickAction: () => VpnState.toggle()
             }
             // === VPN END ===
 
