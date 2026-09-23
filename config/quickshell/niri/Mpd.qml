@@ -47,7 +47,7 @@ Singleton {
         return [
             "if ! mpc status >/dev/null 2>&1; then printf 'ST|\\nTI|\\nAR|\\nAL|\\nPO|\\nLN|\\nVO|\\nQP|\\n'; exit 0; fi",
             "printf 'ST|%s\\n' \"$(mpc status %state% 2>/dev/null)\"",
-            "TI=$(mpc -f '%title%' current 2>/dev/null); [ -n \"$TI\" ] || TI=$(mpc current 2>/dev/null)",
+            "TI=$(mpc -f '%title%' current 2>/dev/null); [ -n \"$TI\" ] || TI=$(mpc -f '%file%' current 2>/dev/null | sed 's#.*/##; s/\\.[^.]*$//')",
             "printf 'TI|%s\\n' \"$TI\"",
             "printf 'AR|%s\\n' \"$(mpc -f '%artist%' current 2>/dev/null)\"",
             "printf 'AL|%s\\n' \"$(mpc -f '%album%' current 2>/dev/null)\"",
