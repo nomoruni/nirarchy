@@ -1,25 +1,38 @@
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
 import QtQuick
 
-PopupWindow {
+// Full-screen transparent overlay: clicking anywhere outside the content box
+// closes the popup (same pattern as UfwPopup).
+PanelWindow {
     id: popupRoot
 
     property var barWin
+    property real openX: 0
+    property real boxWidth: 360
 
     visible: false
-    implicitWidth: 360
-    implicitHeight: contentColumn.implicitHeight + 28
     color: "transparent"
-    grabFocus: false
+    exclusionMode: ExclusionMode.Ignore
+    WlrLayershell.layer: WlrLayer.Top
+    WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.namespace: "nirarchy-player"
+    implicitWidth: 1920
+    implicitHeight: 1080
+
+    anchors {
+        top: true
+        left: true
+        right: true
+        bottom: true
+    }
 
     readonly property bool multi: Player.players.length > 1
     readonly property real progress: Player.length > 0 ? Math.max(0, Math.min(1, Player.position / Player.length)) : 0
 
     function openAt(x) {
-        anchor.window = barWin ?? null;
-        anchor.rect.x = Math.max(0, Math.min(x - 20, (barWin?.width ?? 1000) - implicitWidth - 8));
-        anchor.rect.y = Theme.barHeight + 6;
+        popupRoot.openX = x ?? 800;
         visible = true;
         Player.refresh();
     }
@@ -27,6 +40,12 @@ PopupWindow {
     onVisibleChanged: {
         if (!visible)
             closed();
+    }
+
+    // Click anywhere outside the content box to dismiss.
+    MouseArea {
+        anchors.fill: parent
+        onClicked: popupRoot.visible = false
     }
 
     component MediaBtn: Rectangle {
@@ -68,11 +87,23 @@ PopupWindow {
     }
 
     Rectangle {
-        anchors.fill: parent
+        id: contentBox
+
+        x: Math.max(0, Math.min(popupRoot.openX - 20, popupRoot.width - popupRoot.boxWidth - 8))
+        y: Theme.barHeight + 6
+        width: popupRoot.boxWidth
+        height: contentColumn.implicitHeight + 28
         radius: 0
         color: Theme.bg
         border.color: Theme.accent
         border.width: 1
+
+        // Absorb clicks in the popup's own empty space so they don't hit the
+        // dismiss scrim behind it.
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {}
+        }
 
         Column {
             id: contentColumn
@@ -297,7 +328,7 @@ PopupWindow {
                 popupRoot.visible = false;
                 return;
             }
-            popupRoot.openAt((popupRoot.barWin?.width ?? 800) - popupRoot.implicitWidth);
+            popupRoot.openAt(((popupRoot.barWin?.width || popupRoot.width) || 1366) - popupRoot.boxWidth - 20);
         }
     }
 }

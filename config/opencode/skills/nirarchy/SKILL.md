@@ -108,5 +108,15 @@ cyan→green border; other themes derive from their accent.
 - Elephant must restart with the session (it holds NIRI_SOCKET); its unit has
   `PartOf=graphical-session.target`.
 - New bar features are QML files in `~/.config/quickshell/niri/` (flat directory; types
-  resolve per-directory). Popups use `PopupWindow` with `anchor.window` + `anchor.rect`.
-  `grabFocus: true` makes niri dismiss popups — use `false`.
+  resolve per-directory). Two popup styles:
+  - Small anchored popups (wifi, bt, audio, pomodoro, printer): `PopupWindow` with
+    `anchor.window` + `anchor.rect`; keep `grabFocus: false` (true makes niri dismiss
+    them on outside clicks).
+  - Click-outside-to-close popups (player, mpd, ufw): full-screen transparent
+    `PanelWindow` overlay (anchors top/left/right/bottom, `exclusionMode: ExclusionMode.Ignore`,
+    `WlrLayershell.keyboardFocus: visible ? Exclusive : None`) with a full-window scrim
+    `MouseArea` that hides the popup, and the content box positioned at
+    `x: clamp(openX - 20, 0, width - boxWidth - 8)`, `y: Theme.barHeight + 6`. The content
+    box contains an absorbing `MouseArea` (`onClicked: {}`) so clicks inside don't reach
+    the scrim. Declare `property real boxWidth` and use it for the box width and any
+    IPC `toggle()` x math (the panel's `implicitWidth` is the full-screen size, not the box's).
