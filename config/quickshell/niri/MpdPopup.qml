@@ -289,7 +289,7 @@ PanelWindow {
 
                     Text {
                         anchors.centerIn: parent
-                        text: "󰖩  ncmpcpp"
+                        text: "󰦚  ncmpcpp"
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
                         color: npHover.hovered ? Theme.bg : Theme.fg
