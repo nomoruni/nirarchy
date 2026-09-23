@@ -267,6 +267,34 @@ PanelWindow {
             anchors.centerIn: parent
             spacing: 2
 
+// === MPD START ===
+            BarButton {
+                id: mpdBtn
+
+                visible: Mpd.available
+                glyph: "󰝚"
+                label: Mpd.displayTitle
+                accentColor: bar.mpdBtnOpen || Mpd.playing
+                tip: (Mpd.hasTrack ? Mpd.title : "MPD") + (Mpd.artist !== "" ? "\n" + Mpd.artist : "") + (Mpd.playing ? " — playing" : Mpd.status === "paused" ? " — paused" : " — stopped") + "\n\nClick for player controls\nRight-click to play/pause\nScroll to change track"
+                onClickAction: () => {
+                    if (mpdPopup.visible) {
+                        mpdPopup.visible = false;
+                        return;
+                    }
+                    const px = mapToItem(bar.contentItem, 0, 0).x;
+                    netPopup.visible = false;
+                    btPopup.visible = false;
+                    audioPopup.visible = false;
+                    mediaPopup.visible = false;
+                    bar.mpdBtnOpen = true;
+                    mpdPopup.openAt(px);
+                }
+                onRightClickAction: () => Mpd.togglePlay()
+                onScrollUpAction: () => Mpd.previous()
+                onScrollDownAction: () => Mpd.next()
+            }
+            // === MPD END ===
+
 // === VPN START ===
             BarButton {
                 glyph: "󰖂"
@@ -319,34 +347,6 @@ PanelWindow {
                     pomoPopup.openAt(px);
                 }
             }
-
-            // === MPD START ===
-            BarButton {
-                id: mpdBtn
-
-                visible: Mpd.available
-                glyph: "󰝚"
-                label: Mpd.displayTitle
-                accentColor: bar.mpdBtnOpen || Mpd.playing
-                tip: (Mpd.hasTrack ? Mpd.title : "MPD") + (Mpd.artist !== "" ? "\n" + Mpd.artist : "") + (Mpd.playing ? " — playing" : Mpd.status === "paused" ? " — paused" : " — stopped") + "\n\nClick for player controls\nRight-click to play/pause\nScroll to change track"
-                onClickAction: () => {
-                    if (mpdPopup.visible) {
-                        mpdPopup.visible = false;
-                        return;
-                    }
-                    const px = mapToItem(bar.contentItem, 0, 0).x;
-                    netPopup.visible = false;
-                    btPopup.visible = false;
-                    audioPopup.visible = false;
-                    mediaPopup.visible = false;
-                    bar.mpdBtnOpen = true;
-                    mpdPopup.openAt(px);
-                }
-                onRightClickAction: () => Mpd.togglePlay()
-                onScrollUpAction: () => Mpd.previous()
-                onScrollDownAction: () => Mpd.next()
-            }
-            // === MPD END ===
 
             ClockWidget {
                 barWin: bar
