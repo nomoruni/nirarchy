@@ -275,6 +275,40 @@ PanelWindow {
                     color: Theme.dim
                 }
             }
+
+            Item {
+                width: parent.width
+                height: 26
+
+                Rectangle {
+                    id: npBtn
+
+                    anchors.fill: parent
+                    radius: 0
+                    color: npHover.hovered ? Theme.accent : Theme.bgLight
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "󰖩  ncmpcpp"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 11
+                        color: npHover.hovered ? Theme.bg : Theme.fg
+                    }
+
+                    HoverHandler {
+                        id: npHover
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            popupRoot.visible = false;
+                            Actions.detached("nirarchy-launch-or-focus-tui ncmpcpp");
+                        }
+                    }
+                }
+            }
         }
     }
 
