@@ -320,6 +320,34 @@ PanelWindow {
                 }
             }
 
+            // === MPD START ===
+            BarButton {
+                id: mpdBtn
+
+                visible: Mpd.available
+                glyph: "󰝚"
+                label: Mpd.displayTitle
+                accentColor: bar.mpdBtnOpen || Mpd.playing
+                tip: (Mpd.hasTrack ? Mpd.title : "MPD") + (Mpd.artist !== "" ? "\n" + Mpd.artist : "") + (Mpd.playing ? " — playing" : Mpd.status === "paused" ? " — paused" : " — stopped") + "\n\nClick for player controls\nRight-click to play/pause\nScroll to change track"
+                onClickAction: () => {
+                    if (mpdPopup.visible) {
+                        mpdPopup.visible = false;
+                        return;
+                    }
+                    const px = mapToItem(bar.contentItem, 0, 0).x;
+                    netPopup.visible = false;
+                    btPopup.visible = false;
+                    audioPopup.visible = false;
+                    mediaPopup.visible = false;
+                    bar.mpdBtnOpen = true;
+                    mpdPopup.openAt(px);
+                }
+                onRightClickAction: () => Mpd.togglePlay()
+                onScrollUpAction: () => Mpd.previous()
+                onScrollDownAction: () => Mpd.next()
+            }
+            // === MPD END ===
+
             ClockWidget {
                 barWin: bar
                 calendar: calPopup
@@ -372,6 +400,7 @@ PanelWindow {
                     netPopup.visible = false;
                     btPopup.visible = false;
                     audioPopup.visible = false;
+                    mpdPopup.visible = false;
                     bar.mediaBtnOpen = true;
                     mediaPopup.openAt(px);
                 }
@@ -443,6 +472,7 @@ PanelWindow {
                     netPopup.visible = false;
                     audioPopup.visible = false;
                     mediaPopup.visible = false;
+                    mpdPopup.visible = false;
                     bar.btBtnOpen = true;
                     btPopup.openAt(px);
                 }
@@ -484,6 +514,7 @@ PanelWindow {
                     btPopup.visible = false;
                     audioPopup.visible = false;
                     mediaPopup.visible = false;
+                    mpdPopup.visible = false;
                     bar.wifiBtnOpen = true;
                     netPopup.openAt(px);
                 }
@@ -504,6 +535,7 @@ PanelWindow {
                     netPopup.visible = false;
                     btPopup.visible = false;
                     mediaPopup.visible = false;
+                    mpdPopup.visible = false;
                     bar.audioBtnOpen = true;
                     audioPopup.openAt(px);
                 }
@@ -602,6 +634,13 @@ PanelWindow {
         onClosed: mediaBtnOpen = false
     }
 
+    MpdPopup {
+        id: mpdPopup
+
+        barWin: bar
+        onClosed: mpdBtnOpen = false
+    }
+
     AudioPopup {
         id: audioPopup
 
@@ -613,6 +652,7 @@ PanelWindow {
     property bool btBtnOpen: false
     property bool pomoBtnOpen: false
     property bool mediaBtnOpen: false
+    property bool mpdBtnOpen: false
     property bool audioBtnOpen: false
     // === VPN START ===
     property bool vpnBtnOpen: false
