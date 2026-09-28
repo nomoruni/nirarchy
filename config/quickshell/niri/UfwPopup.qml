@@ -253,6 +253,7 @@ PanelWindow {
                             elide: Text.ElideRight
                             text: ruleRow.modelData.action + " " + ruleRow.modelData.to
                                   + (ruleRow.modelData.from !== "" && ruleRow.modelData.from !== "Anywhere" ? " from " + ruleRow.modelData.from : "")
+                                  + (ruleRow.modelData.details !== "" ? "  " + ruleRow.modelData.details : "")
                             font.family: Theme.fontFamily
                             font.pixelSize: 11
                             color: Theme.fg

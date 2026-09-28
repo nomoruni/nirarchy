@@ -62,27 +62,14 @@ Singleton {
                 const lines = text.trim().split("\n");
                 root.enabled = /^Status:\s*active\b/.test(lines[0] || "") || false;
                 const newRules = [];
-                for (const raw of lines) {
-                    const l = raw.trim();
-                    if (!l)
-                        continue;
-                    const logMatch = l.match(/^Logging:\s+(\S+)/);
-                    if (logMatch) {
-                        root.logging = logMatch[1];
-                        continue;
-                    }
-                    const def = l.match(/^Default:\s+(deny|allow|reject)\s*\(incoming\),\s*(deny|allow|reject)\s*\(outgoing\)/);
-                    if (def) {
-                        root.defaultIncoming = def[1];
-                        root.defaultOutgoing = def[2];
-                        continue;
-                    }
+                for (const l of lines) {
                     if (l.startsWith("Status:")
                         || l.startsWith("New profiles:")
                         || l.startsWith("Skipping")
                         || l.startsWith("To")
                         || l.startsWith("--"))
                         continue;
+                    // Extract rule text after the "N]" prefix, matching the original logic
                     const rm = l.match(/^\[([0-9,\s]+)\]\s+(.+)$/);
                     let ruleText = l;
                     let ruleNum = "";
@@ -91,21 +78,55 @@ Singleton {
                         ruleText = rm[2];
                     }
                     const p = ruleText.split(/\s+/);
-                    if (p[0] === "Anywhere" && /^\(v[46]\)$/.test(p[1] || "")) {
-                        p[0] = "Anywhere " + p[1];
-                        p.splice(1, 1);
-                    }
-                    if (p.length >= 4
-                        && /^(ALLOW|DENY|REJECT|LIMIT)$/.test(p[1])
-                        && /^(IN|OUT|FWD|IN,OUT|IN,FWD|FWD,OUT|IN,OUT,FWD)$/.test(p[2])) {
-                        newRules.push({
+                    // ----- Identify format & parse -----
+                    // Format 1: v6 variant (e.g. [ 3] 3329 (v6) ALLOW IN Anywhere (v6))
+                    // p[0] = identifier, p[1] = "(v6)", p[2] = ACTION, p[3] = DIRECTION, p[4] = FROM, p[5] = "(v6)"
+                    let ruleEntry = null;
+                    if (p.length >= 5
+                        && /^(ALLOW|DENY|REJECT|LIMIT)$/.test(p[2])
+                        && /^(IN|OUT|FWD|IN,OUT|IN,FWD|FWD,OUT|IN,OUT,FWD)$/.test(p[3])
+                        && /^\(v[46]\)$/.test(p[1] || "")) {
+                        ruleEntry = {
                             "num": ruleNum !== "" ? ruleNum : String(newRules.length + 1),
-                            "to": p[0],
-                            "action": p[1],
-                            "direction": p[2],
-                            "from": p[3],
-                            "details": p.slice(4).join(" ")
-                        });
+                            "to": p[0] + " " + p[1],       // e.g. "3329 (v6)" — (v6) in the name
+                            "action": p[2],
+                            "direction": p[3],
+                            "from": p[4],
+                            "details": ""                  // (v6) already in "to"
+                        };
+                    }
+                    // Format 2: Standard with "Anywhere" prefix (e.g. [1] Anywhere ALLOW IN 192.168.122.0/24)
+                    if (!ruleEntry && p[0] === "Anywhere") {
+                        if (p.length >= 4
+                            && /^(ALLOW|DENY|REJECT|LIMIT)$/.test(p[1])
+                            && /^(IN|OUT|FWD|IN,OUT|IN,FWD|FWD,OUT|IN,OUT,FWD)$/.test(p[2])) {
+                            ruleEntry = {
+                                "num": ruleNum !== "" ? ruleNum : String(newRules.length + 1),
+                                "to": p[0],
+                                "action": p[1],
+                                "direction": p[2],
+                                "from": p[3],
+                                "details": p.slice(4).join(" ")
+                            };
+                        }
+                    }
+                    // Format 3: Verbose format (e.g. [3] 224.0.0.251 5353 on enp+ ALLOW IN Anywhere # comment)
+                    // p[0] = IP, p[1] = port, p[2] = "on", p[3] = interface, p[4] = ACTION, p[5] = DIRECTION, p[6] = FROM
+                    if (!ruleEntry && p.length >= 7 && p[0] !== "Anywhere"
+                        && p[2] === "on"
+                        && /^(ALLOW|DENY|REJECT|LIMIT)$/.test(p[4])
+                        && /^(IN|OUT|FWD|IN,OUT|IN,FWD|FWD,OUT|IN,OUT,FWD)$/.test(p[5])) {
+                        ruleEntry = {
+                            "num": ruleNum !== "" ? ruleNum : String(newRules.length + 1),
+                            "to": p.slice(0, 4).join(" "),        // IP + port + on + interface
+                            "action": p[4],
+                            "direction": p[5],
+                            "from": p[6],
+                            "details": p.slice(7).join(" ")
+                        };
+                    }
+                    if (ruleEntry) {
+                        newRules.push(ruleEntry);
                     }
                 }
                 root.rules = newRules;
