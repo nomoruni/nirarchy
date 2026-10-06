@@ -336,9 +336,8 @@ PanelWindow {
                 label: Pomodoro.running ? Pomodoro.formattedTime() : ""
                 glyphTint: Pomodoro.mode === "work" ? Theme.red : Pomodoro.mode === "idle" ? Theme.dim : Theme.green
                 accentColor: Pomodoro.running
-                tip: Pomodoro.modeLabel() + (Pomodoro.running ? " · " + Pomodoro.formattedTime() : "") + "\n\nSession " + (Pomodoro.sessions + 1) + "/" + Pomodoro.sessionsBeforeLong + "\nLeft-click: start / pause\nRight-click: open controls"
-                onClickAction: () => Pomodoro.start()
-                onRightClickAction: () => {
+                tip: Pomodoro.modeLabel() + (Pomodoro.running ? " · " + Pomodoro.formattedTime() : "") + "\n\nSession " + (Pomodoro.sessions + 1) + "/" + Pomodoro.sessionsBeforeLong + "\nLeft-click: open controls\nRight-click: start / pause"
+                onClickAction: () => {
                     if (pomoPopup.visible) {
                         pomoPopup.visible = false;
                         return;
@@ -346,6 +345,7 @@ PanelWindow {
                     const px = mapToItem(bar.contentItem, 0, 0).x;
                     pomoPopup.openAt(px);
                 }
+                onRightClickAction: () => Pomodoro.start()
             }
 
             ClockWidget {
