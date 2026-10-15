@@ -163,7 +163,7 @@ PopupWindow {
     }
 
     function statusIcon() {
-        return "";
+        return "";
     }
 
     function statusColor() {
