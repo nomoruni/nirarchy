@@ -484,7 +484,7 @@ PanelWindow {
                 visible: printerPopup.printerStatus !== "unknown"
                 glyph: printerPopup.statusIcon()
                 accentColor: bar.printerBtnOpen
-                tip: printerPopup.printerModel + " — " + printerPopup.printerStatus + (printerPopup.jobs.length > 0 ? "\n" + printerPopup.jobs.length + " jobs" : "")
+                tip: printerPopup.printerModel + " — " + printerPopup.printerStatus + (printerPopup.jobs.length > 0 ? "\n" + printerPopup.jobs.length + " jobs" : "") + "\nUSB: " + printerPopup.usbPrinters.length + " · Network: " + printerPopup.netPrinters.length
                 dangerColor: printerPopup.printerStatus === "offline" || printerPopup.printerStatus === "stopped"
                 onClickAction: () => {
                     if (printerPopup.visible) {

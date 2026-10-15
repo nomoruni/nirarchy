@@ -7,18 +7,20 @@ PopupWindow {
     id: popupRoot
 
     property var barWin
+    property var usbPrinters: []
+    property var netPrinters: []
+    property string selectedTab: "usb"
+    property string selectedQueue: ""
     property string printerStatus: "unknown"
-    property string printerModel: "Printer"
+    property string printerModel: ""
     property string printerDevice: ""
     property var jobs: []
 
     visible: false
-    implicitWidth: 380
-    implicitHeight: 500
+    implicitWidth: 440
+    implicitHeight: 580
     color: "transparent"
     grabFocus: false
-
-    property string printerQueue: "EPSON_L3250_Series"
 
     function openAt(x) {
         anchor.window = barWin ?? null;
@@ -29,13 +31,26 @@ PopupWindow {
     }
 
     function refresh() {
+        discoverProc.running = true;
+    }
+
+    function refreshDetails() {
         statusProc.running = true;
         jobsProc.running = true;
     }
 
+    function selectPrinter(q) {
+        selectedQueue = q;
+        printerModel = q.replace(/_/g, " ");
+        printerStatus = "unknown";
+        printerDevice = "";
+        jobs = [];
+        refreshDetails();
+    }
+
     function cancelJob(jobId) {
-        Actions.run("cancel " + jobId);
-        Qt.callLater(function() { refresh(); });
+        Actions.run("cancel " + jobId + " " + selectedQueue);
+        Qt.callLater(function() { refreshDetails(); });
     }
 
     onVisibleChanged: {
@@ -45,37 +60,94 @@ PopupWindow {
 
     Component.onCompleted: refresh()
 
-    readonly property Process statusProc: Process {
+    // Discover all printers and split into USB / network lists
+    readonly property Process discoverProc: Process {
         command: ["sh", "-c",
-            "echo $(lpstat -p " + printerQueue + " 2>/dev/null); " +
-            "echo $(lpstat -l -p " + printerQueue + " 2>/dev/null | grep -i 'Description:' | sed 's/.*Description:\\s*//'); " +
-            "echo $(lpstat -p " + printerQueue + " -v 2>/dev/null | sed 's/.*device for .*: //')"]
+            "lpstat -v 2>/dev/null; echo '---SEP---'; lpstat -p 2>/dev/null"]
         stdout: StdioCollector {
             onStreamFinished: {
+                const parts = text.split("---SEP---");
+                const vLines = (parts[0] || "").trim().split("\n");
+                const pLines = (parts[1] || "").trim().split("\n");
+
+                // queue name -> device URI
+                const devMap = {};
+                for (const l of vLines) {
+                    const m = l.trim().match(/^device for (\S+):\s*(.+)$/);
+                    if (m)
+                        devMap[m[1]] = m[2].trim();
+                }
+
+                const usb = [];
+                const net = [];
+                for (const l of pLines) {
+                    const m = l.trim().match(/^printer (\S+)\s+(idle|disabled|printing|stopped)/);
+                    if (!m)
+                        continue;
+                    const q = m[1];
+                    const st = m[2];
+                    const dev = devMap[q] || "";
+                    const info = { queue: q, status: st, device: dev };
+                    if (dev.toLowerCase().startsWith("usb://"))
+                        usb.push(info);
+                    else
+                        net.push(info);
+                }
+                usb.sort(function(a, b) { return a.queue.localeCompare(b.queue); });
+                net.sort(function(a, b) { return a.queue.localeCompare(b.queue); });
+                popupRoot.usbPrinters = usb;
+                popupRoot.netPrinters = net;
+
+                // Auto-select a printer if current selection is gone or empty
+                const list = popupRoot.selectedTab === "usb" ? usb : net;
+                if (!list.find(function(p) { return p.queue === popupRoot.selectedQueue; })) {
+                    const other = popupRoot.selectedTab === "usb" ? net : usb;
+                    const fallback = list.length > 0 ? list[0] : (other.length > 0 ? other[0] : null);
+                    if (fallback)
+                        popupRoot.selectPrinter(fallback.queue);
+                }
+            }
+        }
+    }
+
+    readonly property Process statusProc: Process {
+        command: ["sh", "-c",
+            "echo $(lpstat -p " + selectedQueue + " 2>/dev/null); " +
+            "echo $(lpstat -p " + selectedQueue + " -v 2>/dev/null | sed 's/.*device for .*: //')"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (!popupRoot.selectedQueue)
+                    return;
                 const lines = text.trim().split("\n");
                 const statusLine = lines[0] || "";
-                if (statusLine.includes("idle")) popupRoot.printerStatus = "idle";
-                else if (statusLine.includes("printing")) popupRoot.printerStatus = "printing";
-                else if (statusLine.includes("stopped")) popupRoot.printerStatus = "stopped";
-                else if (statusLine.includes("disabled")) popupRoot.printerStatus = "offline";
-                else popupRoot.printerStatus = "unknown";
+                if (statusLine.includes("idle"))
+                    popupRoot.printerStatus = "idle";
+                else if (statusLine.includes("printing"))
+                    popupRoot.printerStatus = "printing";
+                else if (statusLine.includes("stopped"))
+                    popupRoot.printerStatus = "stopped";
+                else if (statusLine.includes("disabled"))
+                    popupRoot.printerStatus = "offline";
+                else
+                    popupRoot.printerStatus = "unknown";
 
-                popupRoot.printerModel = lines[1]?.trim() || "EPSON L3250 Series";
-                popupRoot.printerDevice = lines[2]?.trim() || "";
+                popupRoot.printerDevice = lines[1] ? lines[1].trim() : "";
             }
         }
     }
 
     readonly property Process jobsProc: Process {
-        command: ["sh", "-c", "lpstat -W not-completed 2>/dev/null | grep -i '" + printerQueue + "' || true"]
+        command: ["sh", "-c", "lpstat -W not-completed '" + selectedQueue + "' 2>/dev/null || true"]
         stdout: StdioCollector {
             onStreamFinished: {
+                if (!popupRoot.selectedQueue)
+                    return;
                 const rows = [];
-                const lines = text.trim().split("\n");
-                for (let i = 0; i < lines.length; i++) {
-                    if (!lines[i])
+                for (const l of text.trim().split("\n")) {
+                    if (!l.trim())
                         continue;
-                    const p = lines[i].trim().split(/\s+/);
+                    const p = l.trim().split(/\s+/);
+                    // EPSON_L3250_WIFI_-12 user 12345 "date"
                     if (p.length >= 3) {
                         rows.push({
                             "id": p[0].split("-").pop(),
@@ -91,7 +163,7 @@ PopupWindow {
     }
 
     function statusIcon() {
-        return "";
+        return "";
     }
 
     function statusColor() {
@@ -114,6 +186,7 @@ PopupWindow {
             anchors.margins: 14
             spacing: 10
 
+            // Header
             Item {
                 width: parent.width
                 height: 30
@@ -184,23 +257,143 @@ PopupWindow {
                 }
             }
 
+            // Tab selector: USB / Network
+            Row {
+                width: parent.width
+                height: 26
+                spacing: 6
+
+                Rectangle {
+                    width: (parent.width - 6) / 2
+                    height: parent.height
+                    radius: 0
+                    color: popupRoot.selectedTab === "usb" ? Theme.accent : Theme.bgLight
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "USB (" + popupRoot.usbPrinters.length + ")"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 11
+                        color: popupRoot.selectedTab === "usb" ? Theme.bg : Theme.fg
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            popupRoot.selectedTab = "usb";
+                            if (popupRoot.usbPrinters.length > 0
+                                && !popupRoot.usbPrinters.find(function(p) { return p.queue === popupRoot.selectedQueue; }))
+                                popupRoot.selectPrinter(popupRoot.usbPrinters[0].queue);
+                        }
+                    }
+                }
+
+                Rectangle {
+                    width: (parent.width - 6) / 2
+                    height: parent.height
+                    radius: 0
+                    color: popupRoot.selectedTab === "net" ? Theme.accent : Theme.bgLight
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "Network (" + popupRoot.netPrinters.length + ")"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 11
+                        color: popupRoot.selectedTab === "net" ? Theme.bg : Theme.fg
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            popupRoot.selectedTab = "net";
+                            if (popupRoot.netPrinters.length > 0
+                                && !popupRoot.netPrinters.find(function(p) { return p.queue === popupRoot.selectedQueue; }))
+                                popupRoot.selectPrinter(popupRoot.netPrinters[0].queue);
+                        }
+                    }
+                }
+            }
+
+            // Printer list for the selected tab (only when more than one)
+            Column {
+                width: parent.width
+                spacing: 2
+                visible: popupRoot.selectedTab === "usb"
+                    ? popupRoot.usbPrinters.length > 1
+                    : popupRoot.netPrinters.length > 1
+
+                Repeater {
+                    model: popupRoot.selectedTab === "usb" ? popupRoot.usbPrinters : popupRoot.netPrinters
+
+                    delegate: Rectangle {
+                        id: pItem
+
+                        required property var modelData
+
+                        width: parent.width
+                        height: 26
+                        radius: 0
+                        color: pItem.modelData.queue === popupRoot.selectedQueue
+                            ? Theme.bgLight
+                            : (pItemHover.containsMouse ? Theme.bgLight : "transparent")
+
+                        Text {
+                            anchors.left: parent.left
+                            anchors.leftMargin: 8
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: parent.width - 16
+                            text: pItem.modelData.queue.replace(/_/g, " ")
+                                + (pItem.modelData.status === "disabled" ? " (off)" : "")
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 11
+                            color: pItem.modelData.queue === popupRoot.selectedQueue ? Theme.accent : Theme.fg
+                            elide: Text.ElideRight
+                        }
+
+                        HoverHandler { id: pItemHover }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: popupRoot.selectPrinter(pItem.modelData.queue)
+                        }
+                    }
+                }
+            }
+
+            // Empty tab state
+            Text {
+                visible: popupRoot.selectedTab === "usb"
+                    ? popupRoot.usbPrinters.length === 0
+                    : popupRoot.netPrinters.length === 0
+                width: parent.width
+                horizontalAlignment: Text.AlignHCenter
+                text: "No " + (popupRoot.selectedTab === "usb" ? "USB" : "network") + " printers found"
+                font.family: Theme.fontFamily
+                font.pixelSize: 11
+                color: Theme.dim
+            }
+
             // Status bar
             Rectangle {
                 width: parent.width
                 height: 34
                 radius: 0
                 color: Theme.bgLight
+                visible: popupRoot.selectedQueue !== ""
 
                 Text {
                     anchors.left: parent.left
                     anchors.leftMargin: 10
                     anchors.verticalCenter: parent.verticalCenter
-                    text: statusIcon() + "  " + printerModel + " — " + printerStatus
+                    width: parent.width - 100
+                    text: popupRoot.statusIcon() + "  " + popupRoot.printerModel + " — " + popupRoot.printerStatus
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
-                    color: statusColor()
+                    color: popupRoot.statusColor()
                     elide: Text.ElideRight
-                    width: parent.width - 100
                 }
 
                 Rectangle {
@@ -230,11 +423,11 @@ PopupWindow {
                 }
             }
 
-            // Device
+            // Device URI
             Text {
-                visible: printerDevice !== ""
+                visible: popupRoot.printerDevice !== ""
                 width: parent.width
-                text: printerDevice.length > 60 ? printerDevice.substring(0, 57) + "..." : printerDevice
+                text: popupRoot.printerDevice
                 font.family: Theme.fontFamily
                 font.pixelSize: 10
                 color: Theme.dim
@@ -244,7 +437,7 @@ PopupWindow {
             // Active Jobs
             Text {
                 width: parent.width
-                text: "Active Jobs" + (jobs.length > 0 ? " (" + jobs.length + ")" : "")
+                text: "Active Jobs" + (popupRoot.jobs.length > 0 ? " (" + popupRoot.jobs.length + ")" : "")
                 font.family: Theme.fontFamily
                 font.pixelSize: 12
                 font.bold: true
@@ -252,16 +445,16 @@ PopupWindow {
             }
 
             Text {
-                visible: jobs.length === 0
+                visible: popupRoot.jobs.length === 0
                 width: parent.width
-                text: printerStatus === "printing" ? "Printing..." : "No active jobs"
+                text: popupRoot.printerStatus === "printing" ? "Printing..." : "No active jobs"
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
-                color: printerStatus === "printing" ? Theme.accent : Theme.dim
+                color: popupRoot.printerStatus === "printing" ? Theme.accent : Theme.dim
             }
 
             Repeater {
-                model: jobs
+                model: popupRoot.jobs
 
                 delegate: Rectangle {
                     id: jobRow
