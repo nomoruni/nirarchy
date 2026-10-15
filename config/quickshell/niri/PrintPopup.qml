@@ -316,13 +316,13 @@ PopupWindow {
                 }
             }
 
-            // Printer list for the selected tab (only when more than one)
+            // Printer list for the selected tab
             Column {
                 width: parent.width
                 spacing: 2
                 visible: popupRoot.selectedTab === "usb"
-                    ? popupRoot.usbPrinters.length > 1
-                    : popupRoot.netPrinters.length > 1
+                    ? popupRoot.usbPrinters.length > 0
+                    : popupRoot.netPrinters.length > 0
 
                 Repeater {
                     model: popupRoot.selectedTab === "usb" ? popupRoot.usbPrinters : popupRoot.netPrinters
