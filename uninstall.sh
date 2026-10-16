@@ -3,12 +3,13 @@
 #  Nirarchy uninstaller
 #
 #  Removes everything install.sh set up: niri/quickshell user services,
-#  configs, scripts, data, fonts, the SDDM theme, sudoers helper rules,
-#  the NetworkManager wifi-backend override, and the niriarchy-only packages.
+#  configs, scripts, data, fonts, the nirarchy SDDM theme/config, the
+#  sudoers helper rules, the NetworkManager wifi-backend override, and the
+#  niriarchy-only packages.
 #
-#  Tuned for switching to Plasma: the wifi backend is reverted to
-#  wpa_supplicant and GTK is reset to Breeze. tlp (power management) and all
-#  shared/general packages are left installed.
+#  Keeps SDDM installed for Plasma and switches it to the default theme
+#  (breeze). Reverts the wifi backend to wpa_supplicant and resets GTK to
+#  Breeze. tlp (power management) and all shared/general packages stay.
 #
 #  Safe to re-run.
 #  Usage:  bash uninstall.sh [--yes] [--no-pkg]
@@ -43,13 +44,15 @@ fi
 cat <<'EOF'
 This will uninstall Nirarchy:
   • stop & remove the nirarchy user services (bar, crash-watch, elephant)
-  • remove niri/quickshell configs, scripts, data, fonts and the SDDM theme
+  • remove niri/quickshell configs, scripts, data and fonts
+  • remove the nirarchy SDDM theme/config, keeping SDDM on the default theme
   • remove the nirarchy sudoers helper rules
   • revert the NetworkManager wifi backend to wpa_supplicant
   • reset GTK3/GTK4 to Breeze (Plasma default)
   • remove nirarchy-only packages (niri, quickshell-git, walker, elephant, ...)
 
 Kept on purpose:
+  • SDDM (display manager) for Plasma, with the default (breeze) theme
   • tlp / tlp-pd (power management)
   • shared packages (NetworkManager, bluez, foot, fonts, btop, fzf, ...)
   • your ~/.local/bin PATH entry (standard user bin dir)
@@ -131,13 +134,36 @@ sudo systemctl disable --now iwd.service 2>/dev/null || true
 ok "wifi backend reverted to wpa_supplicant"
 
 # ----------------------------------------------------------------------------
-say "Removing SDDM theme and sudoers helper rules (needs sudo)"
+say "Keeping SDDM for Plasma, switching it to the default theme (needs sudo)"
+# Remove the nirarchy greeter theme, its override config and helper
 sudo rm -rf /usr/share/sddm/themes/nirarchy
 sudo rm -f /etc/sddm.conf.d/nirarchy.conf
 sudo rm -f /usr/local/bin/nirarchy-sddm-apply /etc/sudoers.d/nirarchy-sddm
 sudo rm -f /etc/sudoers.d/ufw
-ok "SDDM theme + nirarchy sudoers rules removed"
-note "SDDM falls back to your default session (Breeze / Plasma)."
+
+# Point SDDM at the default KDE theme (breeze) instead of nirarchy. Fall back
+# to the first installed theme if breeze is missing, so the greeter always
+# renders. With nirarchy.conf gone, the greeter's Wayland compositor override
+# (niri-session) goes away too and SDDM reverts to its stock X11 greeter
+# (xorg-server is present), while your Plasma Wayland session is unaffected.
+SDDM_THEME="breeze"
+[[ -d /usr/share/sddm/themes/$SDDM_THEME ]] || \
+  SDDM_THEME="$(ls /usr/share/sddm/themes 2>/dev/null | head -1)"
+if [[ -n $SDDM_THEME ]]; then
+  SDDM_CONF=/etc/sddm.conf.d/kde_settings.conf
+  if [[ -f $SDDM_CONF ]] && grep -qE '^[[:space:]]*Current=' "$SDDM_CONF"; then
+    sudo sed -i "s|^[[:space:]]*Current=.*|Current=$SDDM_THEME|" "$SDDM_CONF"
+  elif [[ -f $SDDM_CONF ]] && grep -q '^\[Theme\]' "$SDDM_CONF"; then
+    sudo sed -i "/^\[Theme\]/a Current=$SDDM_THEME" "$SDDM_CONF"
+  else
+    printf '[Theme]\nCurrent=%s\n' "$SDDM_THEME" | sudo tee -a "$SDDM_CONF" >/dev/null
+  fi
+  ok "SDDM theme set to '$SDDM_THEME'"
+fi
+
+# Make sure SDDM stays enabled and functional for Plasma
+sudo systemctl enable sddm.service 2>/dev/null || true
+ok "SDDM kept for Plasma — nirarchy theme/config removed"
 
 # ----------------------------------------------------------------------------
 if ! $NO_PKG; then
@@ -178,6 +204,7 @@ say "Nirarchy removed."
 cat <<'EOF'
 
   Kept on purpose:
+    • SDDM (display manager) for Plasma, on the default (breeze) theme
     • tlp / tlp-pd (power management)
     • shared packages (NetworkManager, bluez, foot, fonts, btop, fzf, ...)
 
